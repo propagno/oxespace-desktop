@@ -13,7 +13,7 @@ export function WordmarkV2(props: Pick<ComponentProps<"svg">, "class">) {
       preserveAspectRatio="none"
       classList={{ [props.class ?? ""]: !!props.class }}
     >
-      <g opacity="0.16" filter={`url(#${filter})`} mask={`url(#${mask})`}>
+      <g opacity="0.5" filter={`url(#${filter})`} mask={`url(#${mask})`}>
         <text
           x="0"
           y="105"
@@ -21,7 +21,6 @@ export function WordmarkV2(props: Pick<ComponentProps<"svg">, "class">) {
           font-size="100"
           font-weight="700"
           letter-spacing="-2"
-          opacity="0.7"
           fill="currentColor"
         >
           OXESpace
