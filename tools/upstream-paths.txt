@@ -12,6 +12,7 @@ packages/effect-drizzle-sqlite
 packages/effect-sqlite-node
 packages/opencode
 packages/server
+packages/tui
 packages/script
 packages/codemode
 package.json
@@ -20,3 +21,4 @@ tsconfig.json
 bun.lock
 LICENSE
 .gitignore
+patches
