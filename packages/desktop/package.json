@@ -4,10 +4,9 @@
   "version": "1.17.15",
   "type": "module",
   "license": "MIT",
-  "homepage": "https://opencode.ai",
+  "homepage": "https://github.com/propagno/oxespace#readme",
   "author": {
-    "name": "OpenCode",
-    "email": "hello@opencode.ai"
+    "name": "OXESpace"
   },
   "scripts": {
     "typecheck": "tsgo -b",

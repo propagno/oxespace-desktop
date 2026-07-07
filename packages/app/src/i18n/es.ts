@@ -447,7 +447,7 @@ export const dict = {
   "toast.session.listFailed.title": "Fallo al cargar sesiones para {{project}}",
 
   "toast.update.title": "Actualización disponible",
-  "toast.update.description": "Una nueva versión de OpenCode ({{version}}) está disponible para instalar.",
+  "toast.update.description": "Una nueva versión de OXESpace ({{version}}) está disponible para instalar.",
   "toast.update.action.installRestart": "Instalar y reiniciar",
   "toast.update.action.notYet": "Todavía no",
 
@@ -460,7 +460,7 @@ export const dict = {
   "error.page.action.checking": "Comprobando...",
   "error.page.action.checkUpdates": "Buscar actualizaciones",
   "error.page.action.updateTo": "Actualizar a {{version}}",
-  "error.page.report.prefix": "Por favor reporta este error al equipo de OpenCode",
+  "error.page.report.prefix": "Por favor reporta este error al equipo de OXESpace",
   "error.page.report.discord": "en Discord",
   "error.page.version": "Versión: {{version}}",
 
@@ -622,7 +622,7 @@ export const dict = {
   "sidebar.project.viewAllSessions": "Ver todas las sesiones",
   "sidebar.project.clearNotifications": "Borrar notificaciones",
 
-  "app.name.desktop": "OpenCode Desktop",
+  "app.name.desktop": "OXESpace Desktop",
 
   "settings.section.desktop": "Escritorio",
   "settings.section.server": "Servidor",
@@ -640,13 +640,13 @@ export const dict = {
   "settings.general.section.display": "Pantalla",
 
   "settings.general.row.language.title": "Idioma",
-  "settings.general.row.language.description": "Cambiar el idioma de visualización para OpenCode",
+  "settings.general.row.language.description": "Cambiar el idioma de visualización para OXESpace",
   "settings.general.row.appearance.title": "Apariencia",
-  "settings.general.row.appearance.description": "Personaliza cómo se ve OpenCode en tu dispositivo",
+  "settings.general.row.appearance.description": "Personaliza cómo se ve OXESpace en tu dispositivo",
   "settings.general.row.colorScheme.title": "Esquema de color",
-  "settings.general.row.colorScheme.description": "Elige si OpenCode sigue el tema del sistema, claro u oscuro",
+  "settings.general.row.colorScheme.description": "Elige si OXESpace sigue el tema del sistema, claro u oscuro",
   "settings.general.row.theme.title": "Tema",
-  "settings.general.row.theme.description": "Personaliza el tema de OpenCode.",
+  "settings.general.row.theme.description": "Personaliza el tema de OXESpace.",
   "settings.general.row.font.title": "Fuente de código",
   "settings.general.row.font.description": "Personaliza la fuente usada en bloques de código",
   "settings.general.row.terminalFont.title": "Terminal Font",
@@ -677,13 +677,13 @@ export const dict = {
     'Mostrar ventanas emergentes de "Novedades" después de las actualizaciones',
 
   "settings.updates.row.startup.title": "Buscar actualizaciones al iniciar",
-  "settings.updates.row.startup.description": "Buscar actualizaciones automáticamente cuando se inicia OpenCode",
+  "settings.updates.row.startup.description": "Buscar actualizaciones automáticamente cuando se inicia OXESpace",
   "settings.updates.row.check.title": "Buscar actualizaciones",
   "settings.updates.row.check.description": "Buscar actualizaciones manualmente e instalarlas si hay alguna",
   "settings.updates.action.checkNow": "Buscar ahora",
   "settings.updates.action.checking": "Buscando...",
   "settings.updates.toast.latest.title": "Estás al día",
-  "settings.updates.toast.latest.description": "Estás usando la última versión de OpenCode.",
+  "settings.updates.toast.latest.description": "Estás usando la última versión de OXESpace.",
   "sound.option.none": "Ninguno",
   "sound.option.alert01": "Alerta 01",
   "sound.option.alert02": "Alerta 02",

@@ -443,7 +443,7 @@ export const dict = {
   "toast.session.listFailed.title": "無法載入 {{project}} 的工作階段",
 
   "toast.update.title": "有可用更新",
-  "toast.update.description": "OpenCode 有新版本 ({{version}}) 可安裝。",
+  "toast.update.description": "OXESpace 有新版本 ({{version}}) 可安裝。",
   "toast.update.action.installRestart": "安裝並重新啟動",
   "toast.update.action.notYet": "稍後",
 
@@ -456,7 +456,7 @@ export const dict = {
   "error.page.action.checking": "檢查中...",
   "error.page.action.checkUpdates": "檢查更新",
   "error.page.action.updateTo": "更新到 {{version}}",
-  "error.page.report.prefix": "請將此錯誤回報給 OpenCode 團隊",
+  "error.page.report.prefix": "請將此錯誤回報給 OXESpace 團隊",
   "error.page.report.discord": "在 Discord 上",
   "error.page.version": "版本: {{version}}",
 
@@ -609,7 +609,7 @@ export const dict = {
   "sidebar.project.viewAllSessions": "查看全部工作階段",
   "sidebar.project.clearNotifications": "清除通知",
 
-  "app.name.desktop": "OpenCode Desktop",
+  "app.name.desktop": "OXESpace Desktop",
   "settings.section.desktop": "桌面",
   "settings.section.server": "伺服器",
   "settings.tab.general": "一般",
@@ -626,13 +626,13 @@ export const dict = {
   "settings.general.section.display": "顯示",
 
   "settings.general.row.language.title": "語言",
-  "settings.general.row.language.description": "變更 OpenCode 的顯示語言",
+  "settings.general.row.language.description": "變更 OXESpace 的顯示語言",
   "settings.general.row.appearance.title": "外觀",
-  "settings.general.row.appearance.description": "自訂 OpenCode 在你的裝置上的外觀",
+  "settings.general.row.appearance.description": "自訂 OXESpace 在你的裝置上的外觀",
   "settings.general.row.colorScheme.title": "配色方案",
-  "settings.general.row.colorScheme.description": "選擇 OpenCode 要跟隨系統、淺色或深色主題",
+  "settings.general.row.colorScheme.description": "選擇 OXESpace 要跟隨系統、淺色或深色主題",
   "settings.general.row.theme.title": "主題",
-  "settings.general.row.theme.description": "自訂 OpenCode 的主題。",
+  "settings.general.row.theme.description": "自訂 OXESpace 的主題。",
   "settings.general.row.font.title": "程式碼字型",
   "settings.general.row.font.description": "自訂程式碼區塊使用的字型",
   "settings.general.row.terminalFont.title": "Terminal Font",
@@ -658,13 +658,13 @@ export const dict = {
   "settings.general.row.releaseNotes.description": "更新後顯示「新功能」彈出視窗",
 
   "settings.updates.row.startup.title": "啟動時檢查更新",
-  "settings.updates.row.startup.description": "在 OpenCode 啟動時自動檢查更新",
+  "settings.updates.row.startup.description": "在 OXESpace 啟動時自動檢查更新",
   "settings.updates.row.check.title": "檢查更新",
   "settings.updates.row.check.description": "手動檢查更新並在有更新時安裝",
   "settings.updates.action.checkNow": "立即檢查",
   "settings.updates.action.checking": "檢查中...",
   "settings.updates.toast.latest.title": "已是最新版本",
-  "settings.updates.toast.latest.description": "你正在使用最新版本的 OpenCode。",
+  "settings.updates.toast.latest.description": "你正在使用最新版本的 OXESpace。",
 
   "sound.option.none": "無",
   "sound.option.alert01": "警報 01",

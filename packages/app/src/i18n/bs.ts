@@ -447,7 +447,7 @@ export const dict = {
   "toast.session.listFailed.title": "Neuspjelo učitavanje sesija za {{project}}",
 
   "toast.update.title": "Dostupno ažuriranje",
-  "toast.update.description": "Nova verzija OpenCode-a ({{version}}) je dostupna za instalaciju.",
+  "toast.update.description": "Nova verzija OXESpace-a ({{version}}) je dostupna za instalaciju.",
   "toast.update.action.installRestart": "Instaliraj i restartuj",
   "toast.update.action.notYet": "Ne još",
 
@@ -460,7 +460,7 @@ export const dict = {
   "error.page.action.checking": "Provjera...",
   "error.page.action.checkUpdates": "Provjeri ažuriranja",
   "error.page.action.updateTo": "Ažuriraj na {{version}}",
-  "error.page.report.prefix": "Molimo prijavi ovu grešku OpenCode timu",
+  "error.page.report.prefix": "Molimo prijavi ovu grešku OXESpace timu",
   "error.page.report.discord": "na Discordu",
   "error.page.version": "Verzija: {{version}}",
 
@@ -619,7 +619,7 @@ export const dict = {
   "sidebar.project.viewAllSessions": "Prikaži sve sesije",
   "sidebar.project.clearNotifications": "Očisti obavijesti",
 
-  "app.name.desktop": "OpenCode Desktop",
+  "app.name.desktop": "OXESpace Desktop",
 
   "settings.section.desktop": "Desktop",
   "settings.section.server": "Server",
@@ -637,13 +637,13 @@ export const dict = {
   "settings.general.section.display": "Prikaz",
 
   "settings.general.row.language.title": "Jezik",
-  "settings.general.row.language.description": "Promijeni jezik prikaza u OpenCode-u",
+  "settings.general.row.language.description": "Promijeni jezik prikaza u OXESpace-u",
   "settings.general.row.appearance.title": "Izgled",
-  "settings.general.row.appearance.description": "Prilagodi kako OpenCode izgleda na tvom uređaju",
+  "settings.general.row.appearance.description": "Prilagodi kako OXESpace izgleda na tvom uređaju",
   "settings.general.row.colorScheme.title": "Šema boja",
-  "settings.general.row.colorScheme.description": "Odaberi da li OpenCode prati sistemsku, svijetlu ili tamnu temu",
+  "settings.general.row.colorScheme.description": "Odaberi da li OXESpace prati sistemsku, svijetlu ili tamnu temu",
   "settings.general.row.theme.title": "Tema",
-  "settings.general.row.theme.description": "Prilagodi temu OpenCode-a.",
+  "settings.general.row.theme.description": "Prilagodi temu OXESpace-a.",
   "settings.general.row.font.title": "Font za kod",
   "settings.general.row.font.description": "Prilagodi font koji se koristi u blokovima koda",
   "settings.general.row.terminalFont.title": "Terminal Font",
@@ -672,13 +672,13 @@ export const dict = {
   "settings.general.row.releaseNotes.description": 'Prikaži iskačuće prozore "Šta je novo" nakon ažuriranja',
 
   "settings.updates.row.startup.title": "Provjeri ažuriranja pri pokretanju",
-  "settings.updates.row.startup.description": "Automatski provjerava ažuriranja kada se OpenCode pokrene",
+  "settings.updates.row.startup.description": "Automatski provjerava ažuriranja kada se OXESpace pokrene",
   "settings.updates.row.check.title": "Provjeri ažuriranja",
   "settings.updates.row.check.description": "Ručno provjeri ažuriranja i instaliraj ako su dostupna",
   "settings.updates.action.checkNow": "Provjeri sada",
   "settings.updates.action.checking": "Provjera...",
   "settings.updates.toast.latest.title": "Sve je ažurno",
-  "settings.updates.toast.latest.description": "Koristiš najnoviju verziju OpenCode-a.",
+  "settings.updates.toast.latest.description": "Koristiš najnoviju verziju OXESpace-a.",
   "sound.option.none": "Nijedan",
   "sound.option.alert01": "Upozorenje 01",
   "sound.option.alert02": "Upozorenje 02",
