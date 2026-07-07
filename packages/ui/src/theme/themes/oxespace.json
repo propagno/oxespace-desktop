@@ -1,0 +1,43 @@
+{
+  "$schema": "https://opencode.ai/desktop-theme.json",
+  "name": "OXESpace",
+  "id": "oxespace",
+  "dark": {
+    "palette": {
+      "neutral": "#000000",
+      "ink": "#f1f5f9",
+      "primary": "#12C79A",
+      "accent": "#6EEBD4",
+      "interactive": "#12C79A",
+      "success": "#34d474",
+      "warning": "#fbbf24",
+      "error": "#f87171",
+      "info": "#60a5fa",
+      "diffAdd": "#34d474",
+      "diffDelete": "#f87171"
+    },
+    "overrides": {
+      "syntax-comment": "#636b75",
+      "syntax-keyword": "#12C79A",
+      "syntax-string": "#6EEBD4",
+      "syntax-primitive": "#34d474",
+      "syntax-property": "#60a5fa",
+      "syntax-constant": "#c084fc"
+    }
+  },
+  "light": {
+    "palette": {
+      "neutral": "#f1f5f9",
+      "ink": "#062D22",
+      "primary": "#12C79A",
+      "accent": "#0a8f70",
+      "interactive": "#12C79A",
+      "success": "#1a9b4c",
+      "warning": "#b45309",
+      "error": "#c0392b",
+      "info": "#1d6fb8",
+      "diffAdd": "#1a9b4c",
+      "diffDelete": "#c0392b"
+    }
+  }
+}
