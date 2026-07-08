@@ -298,7 +298,9 @@ function NewAppLayout(props: ParentProps<{ serverScoped?: JSX.Element }>) {
 function DraftServerScopedProviders(props: ParentProps<{ directory?: () => string | undefined }>) {
   return (
     <PermissionProvider directory={props.directory}>
-      <ModelsProvider directory={props.directory}>{props.children}</ModelsProvider>
+      <LayoutProvider>
+        <ModelsProvider directory={props.directory}>{props.children}</ModelsProvider>
+      </LayoutProvider>
     </PermissionProvider>
   )
 }
