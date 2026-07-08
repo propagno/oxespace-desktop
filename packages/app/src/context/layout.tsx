@@ -652,7 +652,7 @@ export const { use: useLayout, provider: LayoutProvider } = createSimpleContext(
         toggle() {
           setStore("sidebar", "opened", (x) => !x)
         },
-        width: createMemo(() => store.sidebar.width),
+        width: createMemo(() => store.sidebar.width ?? DEFAULT_SIDEBAR_WIDTH),
         resize(width: number) {
           setStore("sidebar", "width", width)
         },
