@@ -13,8 +13,11 @@ import { ServerConnection, useServer } from "@/context/server"
 import { useCommand, type CommandOption } from "@/context/command"
 import { useLanguage } from "@/context/language"
 import { useServerSync } from "@/context/server-sync"
+import { useServerSDK } from "@/context/server-sdk"
 import { sortedRootSessions } from "@/pages/layout/helpers"
 import { Session } from "@opencode-ai/sdk/v2/client"
+import { produce } from "solid-js/store"
+import { Binary } from "@opencode-ai/core/util/binary"
 
 export default function NewLayout(props: ParentProps) {
   const platform = usePlatform()
@@ -26,7 +29,27 @@ export default function NewLayout(props: ParentProps) {
   const command = useCommand()
   const language = useLanguage()
   const serverSync = useServerSync()
+  const serverSDK = useServerSDK()
   const server = useServer()
+
+  async function archiveSession(session: Session) {
+    const [store, setStore] = serverSync().child(session.directory)
+    await serverSDK().client.session.update({
+      directory: session.directory,
+      sessionID: session.id,
+      time: { archived: Date.now() },
+    })
+    setStore(
+      produce((draft) => {
+        const match = Binary.search(draft.session, session.id, (s) => s.id)
+        if (match.found) draft.session.splice(match.index, 1)
+      }),
+    )
+    const route = layout.route()
+    if (route.type === "session" && route.sessionId === session.id) {
+      navigate("/")
+    }
+  }
 
   createEffect(() => setV2Toast(true))
 
@@ -277,6 +300,16 @@ export default function NewLayout(props: ParentProps) {
                                       {sessionItem.title || "Sessão"}
                                     </span>
                                   </div>
+                                  <button
+                                    type="button"
+                                    class="opacity-0 group-hover:opacity-100 hover:bg-background-base p-0.5 rounded transition-opacity"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      void archiveSession(sessionItem)
+                                    }}
+                                  >
+                                    <IconV2 name="xmark-small" class="size-3.5" />
+                                  </button>
                                 </div>
                               )
                             }}
