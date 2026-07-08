@@ -174,15 +174,17 @@ export function createMainWindow(id: string = randomUUID()) {
 
   // A window saved at/near the 1280px `xl:` breakpoint (e.g. from an older
   // default) renders permanently stuck in the unfinished mobile fallback —
-  // self-heal it forward instead of requiring a manual resize.
+  // self-heal it forward instead of requiring a manual resize. `state.width`
+  // is a getter-only property (electron-window-state), so compute the value
+  // instead of assigning back into it.
   const MIN_SAFE_WIDTH = 1300
-  if (state.width < MIN_SAFE_WIDTH) state.width = MIN_SAFE_WIDTH
+  const initialWidth = Math.max(state.width, MIN_SAFE_WIDTH)
 
   const mode = tone()
   const win = new BrowserWindow({
     x: state.x,
     y: state.y,
-    width: state.width,
+    width: initialWidth,
     height: state.height,
     show: false,
     autoHideMenuBar: true,
