@@ -349,6 +349,21 @@ function DesktopRoot(props: { windowState: DesktopWindowState }) {
     <DesktopMemoryRouter {...props} windowID={platform.windowID ?? "browser"} />
   )
   const onboarding = Promise.withResolvers<void>()
+  // The DesktopFirstLaunchOnboarding component resolves this, but it only mounts
+  // inside the app layout. Routes that render outside the layout — e.g. a restored
+  // `/new-session` draft tab on the prod build, where `newLayoutDesigns` defaults to
+  // false and that route has no layout wrapper — never mount it, which would leave the
+  // startup gate (and its full-screen spinner) pending forever. First-launch onboarding
+  // only matters on a genuinely fresh install (which always boots to `/`, where the
+  // component does mount), so for everyone else resolve the gate immediately. A timeout
+  // is the last-resort safety net so the app can never hang on the splash again.
+  void window.api
+    .isFirstLaunchOnboardingPending?.()
+    .then((pending) => {
+      if (!pending) onboarding.resolve()
+    })
+    .catch(() => onboarding.resolve())
+  setTimeout(() => onboarding.resolve(), 8000)
 
   function handleClick(e: MouseEvent) {
     const link = (e.target as HTMLElement).closest("a.external-link") as HTMLAnchorElement | null

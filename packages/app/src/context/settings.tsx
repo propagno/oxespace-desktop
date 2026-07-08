@@ -52,7 +52,13 @@ export interface Settings {
 export const monoDefault = "System Mono"
 export const sansDefault = "System Sans"
 export const terminalDefault = "JetBrainsMono Nerd Font Mono"
-export const newLayoutDesignsDefault = import.meta.env.VITE_OPENCODE_CHANNEL !== "prod"
+// OXESpace ships the new layout (Codex-style sidebar) as its primary UI on every
+// channel. Upstream gated it off for prod, but that path leaves routes like
+// `/new-session` without a layout wrapper (no sidebar, and the onboarding component
+// that clears the startup gate never mounts), so a restored draft tab boots into a
+// chrome-less, permanently-spinning window. Defaulting it on makes every route render
+// inside the layout.
+export const newLayoutDesignsDefault = true
 
 const monoFallback =
   'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace'
