@@ -2380,7 +2380,7 @@ export default function LegacyLayout(props: ParentProps) {
                 arm()
               }}
             >
-              <div class="@container w-full h-full contain-strict">{sidebarContent()}</div>
+              <div class="@container w-full h-full">{sidebarContent()}</div>
             </nav>
 
             <Show when={layout.sidebar.opened()}>
@@ -2448,7 +2448,7 @@ export default function LegacyLayout(props: ParentProps) {
             >
               <main
                 classList={{
-                  "size-full overflow-hidden flex flex-row items-stretch contain-strict border-t border-border-weak-base bg-background-base xl:border-l xl:rounded-tl-[12px]": true,
+                  "size-full overflow-hidden flex flex-row items-stretch border-t border-border-weak-base bg-background-base xl:border-l xl:rounded-tl-[12px]": true,
                 }}
               >
                 {/* Active Session Tabs - Vertical Rail */}

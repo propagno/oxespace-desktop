@@ -107,7 +107,7 @@ export default function NewLayout(props: ParentProps) {
       }}
     >
       <Titlebar update={update} />
-      <main class="flex-1 min-h-0 min-w-0 overflow-hidden flex flex-row items-stretch contain-strict">
+      <main class="flex-1 min-h-0 min-w-0 overflow-hidden flex flex-row items-stretch">
         {/* Codex Sidebar Panel */}
         <Show when={layout.sidebar.opened()}>
           <div class="w-64 shrink-0 bg-background-base border-r border-border-weaker-base flex flex-col min-h-0 min-w-0 box-border px-3 py-4">
