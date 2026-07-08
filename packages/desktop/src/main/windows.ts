@@ -164,9 +164,19 @@ export function setDockIcon() {
 export function createMainWindow(id: string = randomUUID()) {
   const state = windowState({
     file: windowStateFile(id),
-    defaultWidth: 1280,
-    defaultHeight: 800,
+    // Kept comfortably above Tailwind's 1280px `xl:` breakpoint — the desktop
+    // sidebar/titlebar only render past that width, and a window landing at
+    // exactly 1280px can measure a couple px under it (rounding/scrollbar),
+    // collapsing the whole layout into an unfinished mobile fallback.
+    defaultWidth: 1440,
+    defaultHeight: 900,
   })
+
+  // A window saved at/near the 1280px `xl:` breakpoint (e.g. from an older
+  // default) renders permanently stuck in the unfinished mobile fallback —
+  // self-heal it forward instead of requiring a manual resize.
+  const MIN_SAFE_WIDTH = 1300
+  if (state.width < MIN_SAFE_WIDTH) state.width = MIN_SAFE_WIDTH
 
   const mode = tone()
   const win = new BrowserWindow({
