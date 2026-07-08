@@ -104,6 +104,48 @@ describe("validateCustomProvider", () => {
     expect(result.result?.config.options.headerTimeout).toBe(600000)
   })
 
+  test("appends /v1 to an anthropic baseURL missing it", () => {
+    const result = validateCustomProvider({
+      form: {
+        providerID: "corp-gateway",
+        name: "Corp Gateway",
+        protocol: "anthropic",
+        baseURL: "https://llm-proxy.corp.internal/",
+        apiKey: "secret",
+        timeout: "",
+        models: [{ row: "m0", id: "gpt-5-5", name: "GPT-5.5 via gateway", err: {} }],
+        headers: [{ row: "h0", key: "", value: "", err: {} }],
+        err: {},
+      },
+      t,
+      disabledProviders: [],
+      existingProviderIDs: new Set(),
+    })
+
+    expect(result.result?.config.options.baseURL).toBe("https://llm-proxy.corp.internal/v1")
+  })
+
+  test("leaves an anthropic baseURL that already ends in /v1 unchanged", () => {
+    const result = validateCustomProvider({
+      form: {
+        providerID: "corp-gateway",
+        name: "Corp Gateway",
+        protocol: "anthropic",
+        baseURL: "https://llm-proxy.corp.internal/v1",
+        apiKey: "secret",
+        timeout: "",
+        models: [{ row: "m0", id: "gpt-5-5", name: "GPT-5.5 via gateway", err: {} }],
+        headers: [{ row: "h0", key: "", value: "", err: {} }],
+        err: {},
+      },
+      t,
+      disabledProviders: [],
+      existingProviderIDs: new Set(),
+    })
+
+    expect(result.result?.config.options.baseURL).toBe("https://llm-proxy.corp.internal/v1")
+  })
+
   test("rejects a non-numeric timeout", () => {
     const result = validateCustomProvider({
       form: {

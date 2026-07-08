@@ -142,6 +142,13 @@ export function validateCustomProvider(input: ValidateArgs) {
   const ok = !idError && !existsError && !nameError && !urlError && !timeoutError && modelsValid && headersValid
   if (!ok) return { err, models, headers }
 
+  // @ai-sdk/anthropic appends `/messages` directly to baseURL — it does not add
+  // `/v1` itself (unlike the OpenAI-compatible SDK, which expects a bare host).
+  // Corporate gateways are commonly entered as just the host, which then 404s
+  // at `/messages` with no way to tell why; normalize it here instead.
+  const normalizedBaseURL =
+    input.form.protocol === "anthropic" && !/\/v1\/?$/.test(baseURL) ? `${baseURL.replace(/\/+$/, "")}/v1` : baseURL
+
   return {
     err,
     models,
@@ -155,7 +162,7 @@ export function validateCustomProvider(input: ValidateArgs) {
         name,
         ...(env ? { env: [env] } : {}),
         options: {
-          baseURL,
+          baseURL: normalizedBaseURL,
           ...(timeout ? { headerTimeout: timeout } : {}),
           ...(Object.keys(headerConfig).length ? { headers: headerConfig } : {}),
         },
