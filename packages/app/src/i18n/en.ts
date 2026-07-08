@@ -160,6 +160,7 @@ export const dict = {
   "provider.connect.toast.connected.description": "{{provider}} models are now available to use.",
 
   "provider.custom.title": "Custom provider",
+  "provider.custom.title.edit": "Edit custom provider",
   "provider.custom.description.prefix": "Configure a custom gateway or self-hosted provider. See the ",
   "provider.custom.description.link": "provider config docs",
   "provider.custom.description.suffix": ".",
@@ -177,6 +178,7 @@ export const dict = {
   "provider.custom.field.apiKey.label": "API key",
   "provider.custom.field.apiKey.placeholder": "API key",
   "provider.custom.field.apiKey.description": "Optional. Leave empty if you manage auth via headers.",
+  "provider.custom.field.apiKey.description.edit": "Leave empty to keep the current key unchanged.",
   "provider.custom.field.timeout.label": "Timeout (ms)",
   "provider.custom.field.timeout.placeholder": "600000",
   "provider.custom.field.timeout.description": "Optional. How long to wait for a response before giving up, in milliseconds.",
@@ -240,6 +242,7 @@ export const dict = {
   "common.open": "Open",
   "common.connect": "Connect",
   "common.disconnect": "Disconnect",
+  "common.disconnecting": "Disconnecting…",
   "common.continue": "Continue",
   "common.submit": "Submit",
   "common.save": "Save",

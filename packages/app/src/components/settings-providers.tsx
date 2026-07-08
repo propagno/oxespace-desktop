@@ -4,7 +4,7 @@ import { ProviderIcon } from "@opencode-ai/ui/provider-icon"
 import { Tag } from "@opencode-ai/ui/tag"
 import { showToast } from "@/utils/toast"
 import { popularProviders, useProviders } from "@/hooks/use-providers"
-import { createMemo, type Component, For, Show } from "solid-js"
+import { createMemo, createSignal, type Component, For, Show } from "solid-js"
 import { useLanguage } from "@/context/language"
 import { useServerSDK } from "@/context/server-sdk"
 import { useServerSync } from "@/context/server-sync"
@@ -42,6 +42,7 @@ const SettingsProvidersContent: Component<{ onBack?: () => void }> = (props) => 
   const serverSync = useServerSync()
   const providers = useProviders()
   const providerConnect = useProviderConnectController({ onBack: props.onBack })
+  const [disconnecting, setDisconnecting] = createSignal<string>()
 
   const connect = (provider?: string) => {
     providerConnect.select(provider)
@@ -118,28 +119,33 @@ const SettingsProvidersContent: Component<{ onBack?: () => void }> = (props) => 
   }
 
   const disconnect = async (providerID: string, name: string) => {
-    if (isConfigCustom(providerID)) {
+    setDisconnecting(providerID)
+    try {
+      if (isConfigCustom(providerID)) {
+        await serverSDK()
+          .client.auth.remove({ providerID })
+          .catch(() => undefined)
+        await disableProvider(providerID, name)
+        return
+      }
       await serverSDK()
         .client.auth.remove({ providerID })
-        .catch(() => undefined)
-      await disableProvider(providerID, name)
-      return
-    }
-    await serverSDK()
-      .client.auth.remove({ providerID })
-      .then(async () => {
-        await serverSDK().client.global.dispose()
-        showToast({
-          variant: "success",
-          icon: "circle-check",
-          title: language.t("provider.disconnect.toast.disconnected.title", { provider: name }),
-          description: language.t("provider.disconnect.toast.disconnected.description", { provider: name }),
+        .then(async () => {
+          await serverSDK().client.global.dispose()
+          showToast({
+            variant: "success",
+            icon: "circle-check",
+            title: language.t("provider.disconnect.toast.disconnected.title", { provider: name }),
+            description: language.t("provider.disconnect.toast.disconnected.description", { provider: name }),
+          })
         })
-      })
-      .catch((err: unknown) => {
-        const message = err instanceof Error ? err.message : String(err)
-        showToast({ title: language.t("common.requestFailed"), description: message })
-      })
+        .catch((err: unknown) => {
+          const message = err instanceof Error ? err.message : String(err)
+          showToast({ title: language.t("common.requestFailed"), description: message })
+        })
+    } finally {
+      setDisconnecting((current) => (current === providerID ? undefined : current))
+    }
   }
 
   return (
@@ -179,9 +185,32 @@ const SettingsProvidersContent: Component<{ onBack?: () => void }> = (props) => 
                         </span>
                       }
                     >
-                      <Button size="large" variant="ghost" onClick={() => void disconnect(item.id, item.name)}>
-                        {language.t("common.disconnect")}
-                      </Button>
+                      <div class="flex items-center gap-2">
+                        <Show when={isConfigCustom(item.id)}>
+                          <Button
+                            size="large"
+                            variant="ghost"
+                            disabled={disconnecting() === item.id}
+                            onClick={() =>
+                              dialog.show(() => (
+                                <DialogCustomProvider onBack={dialog.close} editingProviderID={item.id} />
+                              ))
+                            }
+                          >
+                            {language.t("common.edit")}
+                          </Button>
+                        </Show>
+                        <Button
+                          size="large"
+                          variant="ghost"
+                          disabled={disconnecting() === item.id}
+                          onClick={() => void disconnect(item.id, item.name)}
+                        >
+                          {disconnecting() === item.id
+                            ? language.t("common.disconnecting")
+                            : language.t("common.disconnect")}
+                        </Button>
+                      </div>
                     </Show>
                   </div>
                 )}

@@ -176,5 +176,40 @@ let row = 0
 
 const nextRow = () => `row-${row++}`
 
-export const modelRow = (): ModelRow => ({ row: nextRow(), id: "", name: "", err: {} })
-export const headerRow = (): HeaderRow => ({ row: nextRow(), key: "", value: "", err: {} })
+export const modelRow = (init?: { id?: string; name?: string }): ModelRow => ({
+  row: nextRow(),
+  id: init?.id ?? "",
+  name: init?.name ?? "",
+  err: {},
+})
+export const headerRow = (init?: { key?: string; value?: string }): HeaderRow => ({
+  row: nextRow(),
+  key: init?.key ?? "",
+  value: init?.value ?? "",
+  err: {},
+})
+
+export type ExistingCustomProviderConfig = {
+  name?: string
+  npm?: string
+  env?: readonly string[]
+  options?: { baseURL?: string; headerTimeout?: number | false; headers?: Record<string, string> }
+  models?: Record<string, { name?: string }>
+}
+
+export function formStateFromExistingProvider(providerID: string, config: ExistingCustomProviderConfig): FormState {
+  const models = Object.entries(config.models ?? {}).map(([id, m]) => modelRow({ id, name: m.name ?? id }))
+  const headers = Object.entries(config.options?.headers ?? {}).map(([key, value]) => headerRow({ key, value }))
+  return {
+    providerID,
+    name: config.name ?? providerID,
+    protocol: config.npm === ANTHROPIC_NATIVE ? "anthropic" : "openai",
+    baseURL: config.options?.baseURL ?? "",
+    apiKey: config.env?.[0] ? `{env:${config.env[0]}}` : "",
+    timeout:
+      typeof config.options?.headerTimeout === "number" ? String(config.options.headerTimeout) : "",
+    models: models.length ? models : [modelRow()],
+    headers: headers.length ? headers : [headerRow()],
+    err: {},
+  }
+}

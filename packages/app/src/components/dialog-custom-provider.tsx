@@ -14,10 +14,17 @@ import { Link } from "@/components/link"
 import { useServerSDK } from "@/context/server-sdk"
 import { useServerSync } from "@/context/server-sync"
 import { useLanguage } from "@/context/language"
-import { type FormState, headerRow, modelRow, validateCustomProvider } from "./dialog-custom-provider-form"
+import {
+  formStateFromExistingProvider,
+  headerRow,
+  modelRow,
+  validateCustomProvider,
+  type FormState,
+} from "./dialog-custom-provider-form"
 
 type Props = {
   onBack: () => void
+  editingProviderID?: string
 }
 
 export function DialogCustomProvider(props: Props) {
@@ -37,28 +44,36 @@ export function DialogCustomProvider(props: Props) {
       }
       transition
     >
-      <CustomProviderForm />
+      <CustomProviderForm editingProviderID={props.editingProviderID} />
     </Dialog>
   )
 }
 
-export function CustomProviderForm() {
+export function CustomProviderForm(props: { editingProviderID?: string } = {}) {
   const dialog = useDialog()
   const serverSync = useServerSync()
   const serverSDK = useServerSDK()
   const language = useLanguage()
+  const editingProviderID = props.editingProviderID
 
-  const [form, setForm] = createStore<FormState>({
-    providerID: "",
-    name: "",
-    protocol: "openai",
-    baseURL: "",
-    apiKey: "",
-    timeout: "",
-    models: [modelRow()],
-    headers: [headerRow()],
-    err: {},
-  })
+  const [form, setForm] = createStore<FormState>(
+    editingProviderID
+      ? formStateFromExistingProvider(
+          editingProviderID,
+          serverSync().data.config.provider?.[editingProviderID] ?? {},
+        )
+      : {
+          providerID: "",
+          name: "",
+          protocol: "openai",
+          baseURL: "",
+          apiKey: "",
+          timeout: "",
+          models: [modelRow()],
+          headers: [headerRow()],
+          err: {},
+        },
+  )
 
   const protocolLabel = (protocol: FormState["protocol"]) =>
     protocol === "anthropic"
@@ -133,7 +148,9 @@ export function CustomProviderForm() {
       form,
       t: language.t,
       disabledProviders: serverSync().data.config.disabled_providers ?? [],
-      existingProviderIDs: new Set(serverSync().data.provider.all.keys()),
+      existingProviderIDs: new Set(
+        [...serverSync().data.provider.all.keys()].filter((id) => id !== editingProviderID),
+      ),
     })
     batch(() => {
       setForm("err", output.err)
@@ -192,7 +209,9 @@ export function CustomProviderForm() {
     <div class="flex flex-col gap-6 px-2.5 pb-3 overflow-y-auto max-h-[60vh]">
       <div class="px-2.5 flex gap-4 items-center">
         <ProviderIcon id="synthetic" class="size-5 shrink-0 icon-strong-base" />
-        <div class="text-16-medium text-text-strong">{language.t("provider.custom.title")}</div>
+        <div class="text-16-medium text-text-strong">
+          {editingProviderID ? language.t("provider.custom.title.edit") : language.t("provider.custom.title")}
+        </div>
       </div>
 
       <form onSubmit={save} class="px-2.5 pb-6 flex flex-col gap-6">
@@ -206,7 +225,8 @@ export function CustomProviderForm() {
 
         <div class="flex flex-col gap-4">
           <TextField
-            autofocus
+            autofocus={!editingProviderID}
+            disabled={!!editingProviderID}
             label={language.t("provider.custom.field.providerID.label")}
             placeholder={language.t("provider.custom.field.providerID.placeholder")}
             description={language.t("provider.custom.field.providerID.description")}
@@ -247,7 +267,11 @@ export function CustomProviderForm() {
           <TextField
             label={language.t("provider.custom.field.apiKey.label")}
             placeholder={language.t("provider.custom.field.apiKey.placeholder")}
-            description={language.t("provider.custom.field.apiKey.description")}
+            description={
+              editingProviderID
+                ? language.t("provider.custom.field.apiKey.description.edit")
+                : language.t("provider.custom.field.apiKey.description")
+            }
             value={form.apiKey}
             onChange={(v) => setField("apiKey", v)}
           />
