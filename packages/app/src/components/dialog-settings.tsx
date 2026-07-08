@@ -8,7 +8,6 @@ import { useDialog } from "@opencode-ai/ui/context/dialog"
 import { SettingsGeneral } from "./settings-general"
 import { SettingsKeybinds } from "./settings-keybinds"
 import { SettingsProviders } from "./settings-providers"
-import { SettingsModels } from "./settings-models"
 import { SettingsServers } from "./settings-servers"
 
 export const DialogSettings: Component<{ defaultValue?: string }> = (props) => {
@@ -59,10 +58,6 @@ export const DialogSettings: Component<{ defaultValue?: string }> = (props) => {
                       <Icon name="providers" />
                       {language.t("settings.providers.title")}
                     </Tabs.Trigger>
-                    <Tabs.Trigger value="models">
-                      <Icon name="models" />
-                      {language.t("settings.models.title")}
-                    </Tabs.Trigger>
                   </div>
                 </div>
               </div>
@@ -84,9 +79,6 @@ export const DialogSettings: Component<{ defaultValue?: string }> = (props) => {
         </Tabs.Content>
         <Tabs.Content value="providers" class="no-scrollbar">
           <SettingsProviders onBack={showProviders} />
-        </Tabs.Content>
-        <Tabs.Content value="models" class="no-scrollbar">
-          <SettingsModels />
         </Tabs.Content>
       </Tabs>
     </Dialog>

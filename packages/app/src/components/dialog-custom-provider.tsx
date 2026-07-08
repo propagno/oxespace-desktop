@@ -1,8 +1,10 @@
 import { Button } from "@opencode-ai/ui/button"
+import { Collapsible } from "@opencode-ai/ui/collapsible"
 import { useDialog } from "@opencode-ai/ui/context/dialog"
 import { Dialog } from "@opencode-ai/ui/dialog"
 import { IconButton } from "@opencode-ai/ui/icon-button"
 import { ProviderIcon } from "@opencode-ai/ui/provider-icon"
+import { RadioGroup } from "@opencode-ai/ui/radio-group"
 import { useMutation } from "@tanstack/solid-query"
 import { TextField } from "@opencode-ai/ui/text-field"
 import { showToast } from "@/utils/toast"
@@ -49,12 +51,19 @@ export function CustomProviderForm() {
   const [form, setForm] = createStore<FormState>({
     providerID: "",
     name: "",
+    protocol: "openai",
     baseURL: "",
     apiKey: "",
+    timeout: "",
     models: [modelRow()],
     headers: [headerRow()],
     err: {},
   })
+
+  const protocolLabel = (protocol: FormState["protocol"]) =>
+    protocol === "anthropic"
+      ? language.t("provider.custom.field.protocol.option.anthropic")
+      : language.t("provider.custom.field.protocol.option.openai")
 
   const addModel = () => {
     setForm(
@@ -94,10 +103,15 @@ export function CustomProviderForm() {
     )
   }
 
-  const setField = (key: "providerID" | "name" | "baseURL" | "apiKey", value: string) => {
+  const setField = (key: "providerID" | "name" | "baseURL" | "apiKey" | "timeout", value: string) => {
     setForm(key, value)
     if (key === "apiKey") return
     setForm("err", key, undefined)
+  }
+
+  const setProtocol = (protocol: FormState["protocol"] | undefined) => {
+    if (!protocol) return
+    setForm("protocol", protocol)
   }
 
   const setModel = (index: number, key: "id" | "name", value: string) => {
@@ -209,6 +223,19 @@ export function CustomProviderForm() {
             validationState={form.err.name ? "invalid" : undefined}
             error={form.err.name}
           />
+          <div class="flex flex-col gap-1.5">
+            <label class="text-12-medium text-text-weak">{language.t("provider.custom.field.protocol.label")}</label>
+            <RadioGroup
+              options={["openai", "anthropic"] as const}
+              current={form.protocol}
+              label={protocolLabel}
+              onSelect={setProtocol}
+              size="small"
+            />
+            <p class="text-12-regular text-text-weak">
+              {language.t("provider.custom.field.protocol.description")}
+            </p>
+          </div>
           <TextField
             label={language.t("provider.custom.field.baseURL.label")}
             placeholder={language.t("provider.custom.field.baseURL.placeholder")}
@@ -223,6 +250,15 @@ export function CustomProviderForm() {
             description={language.t("provider.custom.field.apiKey.description")}
             value={form.apiKey}
             onChange={(v) => setField("apiKey", v)}
+          />
+          <TextField
+            label={language.t("provider.custom.field.timeout.label")}
+            placeholder={language.t("provider.custom.field.timeout.placeholder")}
+            description={language.t("provider.custom.field.timeout.description")}
+            value={form.timeout}
+            onChange={(v) => setField("timeout", v)}
+            validationState={form.err.timeout ? "invalid" : undefined}
+            error={form.err.timeout}
           />
         </div>
 
@@ -270,49 +306,64 @@ export function CustomProviderForm() {
           </Button>
         </div>
 
-        <div class="flex flex-col gap-3">
-          <label class="text-12-medium text-text-weak">{language.t("provider.custom.headers.label")}</label>
-          <For each={form.headers}>
-            {(h, i) => (
-              <div class="flex gap-2 items-start" data-row={h.row}>
-                <div class="flex-1">
-                  <TextField
-                    label={language.t("provider.custom.headers.key.label")}
-                    hideLabel
-                    placeholder={language.t("provider.custom.headers.key.placeholder")}
-                    value={h.key}
-                    onChange={(v) => setHeader(i(), "key", v)}
-                    validationState={h.err.key ? "invalid" : undefined}
-                    error={h.err.key}
-                  />
-                </div>
-                <div class="flex-1">
-                  <TextField
-                    label={language.t("provider.custom.headers.value.label")}
-                    hideLabel
-                    placeholder={language.t("provider.custom.headers.value.placeholder")}
-                    value={h.value}
-                    onChange={(v) => setHeader(i(), "value", v)}
-                    validationState={h.err.value ? "invalid" : undefined}
-                    error={h.err.value}
-                  />
-                </div>
-                <IconButton
-                  type="button"
-                  icon="trash"
-                  variant="ghost"
-                  class="mt-1.5"
-                  onClick={() => removeHeader(i())}
-                  disabled={form.headers.length <= 1}
-                  aria-label={language.t("provider.custom.headers.remove")}
-                />
-              </div>
-            )}
-          </For>
-          <Button type="button" size="small" variant="ghost" icon="plus-small" onClick={addHeader} class="self-start">
-            {language.t("provider.custom.headers.add")}
-          </Button>
-        </div>
+        <Collapsible variant="ghost">
+          <Collapsible.Trigger class="flex items-center gap-1.5 text-12-medium text-text-weak w-fit">
+            <Collapsible.Arrow />
+            {language.t("provider.custom.advanced.label")}
+          </Collapsible.Trigger>
+          <Collapsible.Content>
+            <div class="flex flex-col gap-3 pt-3">
+              <label class="text-12-medium text-text-weak">{language.t("provider.custom.headers.label")}</label>
+              <For each={form.headers}>
+                {(h, i) => (
+                  <div class="flex gap-2 items-start" data-row={h.row}>
+                    <div class="flex-1">
+                      <TextField
+                        label={language.t("provider.custom.headers.key.label")}
+                        hideLabel
+                        placeholder={language.t("provider.custom.headers.key.placeholder")}
+                        value={h.key}
+                        onChange={(v) => setHeader(i(), "key", v)}
+                        validationState={h.err.key ? "invalid" : undefined}
+                        error={h.err.key}
+                      />
+                    </div>
+                    <div class="flex-1">
+                      <TextField
+                        label={language.t("provider.custom.headers.value.label")}
+                        hideLabel
+                        placeholder={language.t("provider.custom.headers.value.placeholder")}
+                        value={h.value}
+                        onChange={(v) => setHeader(i(), "value", v)}
+                        validationState={h.err.value ? "invalid" : undefined}
+                        error={h.err.value}
+                      />
+                    </div>
+                    <IconButton
+                      type="button"
+                      icon="trash"
+                      variant="ghost"
+                      class="mt-1.5"
+                      onClick={() => removeHeader(i())}
+                      disabled={form.headers.length <= 1}
+                      aria-label={language.t("provider.custom.headers.remove")}
+                    />
+                  </div>
+                )}
+              </For>
+              <Button
+                type="button"
+                size="small"
+                variant="ghost"
+                icon="plus-small"
+                onClick={addHeader}
+                class="self-start"
+              >
+                {language.t("provider.custom.headers.add")}
+              </Button>
+            </div>
+          </Collapsible.Content>
+        </Collapsible>
 
         <Button
           class="w-auto self-start"

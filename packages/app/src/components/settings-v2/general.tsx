@@ -277,6 +277,42 @@ export const SettingsGeneralV2: Component<{
         </SettingsRowV2>
 
         <SettingsRowV2
+          title={language.t("settings.general.row.cavemanMode.title")}
+          description={language.t("settings.general.row.cavemanMode.description")}
+        >
+          <div data-action="settings-caveman-mode">
+            <Switch
+              checked={serverSync().data.config.experimental?.caveman_mode ?? false}
+              onChange={(checked) => void serverSync().updateConfig({ experimental: { caveman_mode: checked } })}
+            />
+          </div>
+        </SettingsRowV2>
+
+        <SettingsRowV2
+          title={language.t("settings.general.row.githubTool.title")}
+          description={language.t("settings.general.row.githubTool.description")}
+        >
+          <div data-action="settings-github-tool">
+            <Switch
+              checked={serverSync().data.config.experimental?.github_tool ?? false}
+              onChange={(checked) => void serverSync().updateConfig({ experimental: { github_tool: checked } })}
+            />
+          </div>
+        </SettingsRowV2>
+
+        <SettingsRowV2
+          title={language.t("settings.general.row.codegraph.title")}
+          description={language.t("settings.general.row.codegraph.description")}
+        >
+          <div data-action="settings-codegraph">
+            <Switch
+              checked={serverSync().data.config.experimental?.codegraph ?? false}
+              onChange={(checked) => void serverSync().updateConfig({ experimental: { codegraph: checked } })}
+            />
+          </div>
+        </SettingsRowV2>
+
+        <SettingsRowV2
           title={language.t("settings.general.row.reasoningSummaries.title")}
           description={language.t("settings.general.row.reasoningSummaries.description")}
         >

@@ -1,0 +1,12 @@
+Manage GitHub pull requests, issues, and releases for the current repository using the `gh` CLI.
+
+Requires the `gh` CLI to be installed and authenticated (`gh auth login`) on the user's machine. Runs against whatever repository the current directory's git remote points to — you do not need to pass an owner/repo unless the user is working with a different repository than the current one.
+
+Actions:
+- pr_list / issue_list: list open (or filtered) pull requests / issues.
+- pr_view / issue_view: show full details (including comments) for a specific number.
+- pr_create / issue_create: open a new pull request / issue. Requires user permission.
+- pr_comment / issue_comment: post a comment on an existing pull request / issue. Requires user permission.
+- release_list: list releases for the repository.
+
+Only use this tool for actual GitHub operations (PRs, issues, releases) — use the git-aware shell commands for local git operations like commits, branches, or diffs.

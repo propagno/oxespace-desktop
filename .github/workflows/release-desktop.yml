@@ -1,0 +1,63 @@
+name: Release Desktop
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+      - "beta-v*.*.*"
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: "Release channel"
+        required: true
+        default: "prod"
+        type: choice
+        options: ["prod", "beta"]
+
+jobs:
+  release:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - run: bun install --frozen-lockfile
+
+      - name: Determine channel
+        id: channel
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "value=${{ inputs.channel }}" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ github.ref_name }}" == beta-v* ]]; then
+            echo "value=beta" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=prod" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build and publish
+        working-directory: packages/desktop
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENCODE_CHANNEL: ${{ steps.channel.outputs.value }}
+          # Windows code signing (optional — leave unset to ship unsigned installers).
+          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+          # macOS notarization (required — electron-builder.config.ts sets notarize: true).
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          CSC_LINK: ${{ secrets.MAC_CERTIFICATE }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CERTIFICATE_PASSWORD }}
+        run: |
+          bun run prebuild
+          bun run build
+          bunx electron-builder --config electron-builder.config.ts --publish always

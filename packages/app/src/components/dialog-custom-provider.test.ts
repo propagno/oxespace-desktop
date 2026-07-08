@@ -9,8 +9,10 @@ describe("validateCustomProvider", () => {
       form: {
         providerID: "custom-provider",
         name: " Custom Provider ",
+        protocol: "openai",
         baseURL: "https://api.example.com ",
         apiKey: " {env: CUSTOM_PROVIDER_KEY} ",
+        timeout: "",
         models: [{ row: "m0", id: " model-a ", name: " Model A ", err: {} }],
         headers: [
           { row: "h0", key: " X-Test ", value: " enabled ", err: {} },
@@ -49,8 +51,10 @@ describe("validateCustomProvider", () => {
       form: {
         providerID: "custom-provider",
         name: "Provider",
+        protocol: "openai",
         baseURL: "https://api.example.com",
         apiKey: "secret",
+        timeout: "",
         models: [
           { row: "m0", id: "model-a", name: "Model A", err: {} },
           { row: "m1", id: "model-a", name: "Model A 2", err: {} },
@@ -76,5 +80,49 @@ describe("validateCustomProvider", () => {
       key: "provider.custom.error.duplicate",
       value: undefined,
     })
+  })
+
+  test("uses the anthropic-native sdk factory when protocol is anthropic", () => {
+    const result = validateCustomProvider({
+      form: {
+        providerID: "corp-gateway",
+        name: "Corp Gateway",
+        protocol: "anthropic",
+        baseURL: "https://llm-proxy.corp.internal",
+        apiKey: "secret",
+        timeout: "600000",
+        models: [{ row: "m0", id: "gpt-5-5", name: "GPT-5.5 via gateway", err: {} }],
+        headers: [{ row: "h0", key: "", value: "", err: {} }],
+        err: {},
+      },
+      t,
+      disabledProviders: [],
+      existingProviderIDs: new Set(),
+    })
+
+    expect(result.result?.config.npm).toBe("@ai-sdk/anthropic")
+    expect(result.result?.config.options.headerTimeout).toBe(600000)
+  })
+
+  test("rejects a non-numeric timeout", () => {
+    const result = validateCustomProvider({
+      form: {
+        providerID: "corp-gateway",
+        name: "Corp Gateway",
+        protocol: "anthropic",
+        baseURL: "https://llm-proxy.corp.internal",
+        apiKey: "secret",
+        timeout: "not-a-number",
+        models: [{ row: "m0", id: "gpt-5-5", name: "GPT-5.5 via gateway", err: {} }],
+        headers: [{ row: "h0", key: "", value: "", err: {} }],
+        err: {},
+      },
+      t,
+      disabledProviders: [],
+      existingProviderIDs: new Set(),
+    })
+
+    expect(result.result).toBeUndefined()
+    expect(result.err.timeout).toBe("provider.custom.error.timeout.format")
   })
 })

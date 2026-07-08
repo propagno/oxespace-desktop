@@ -54,12 +54,13 @@ import { useTheme, type ColorScheme } from "@opencode-ai/ui/theme/context"
 import { useCommand, type CommandOption } from "@/context/command"
 import { ConstrainDragXAxis, getDraggableId } from "@/utils/solid-dnd"
 import { DebugBar } from "@/components/debug-bar"
-import { HelpButton } from "@/components/help-button"
 import { Titlebar, type TitlebarUpdate } from "@/components/titlebar"
 import { useDirectoryPicker } from "@/components/directory-picker"
 import { ServerConnection, useServer } from "@/context/server"
 import { useLanguage, type Locale } from "@/context/language"
 import { pathKey } from "@/utils/path-key"
+import { useTabs, tabKey } from "@/context/tabs"
+import { useGlobal } from "@/context/global"
 import {
   displayName,
   effectiveWorkspaceOrder,
@@ -122,6 +123,7 @@ export default function LegacyLayout(props: ParentProps) {
   const command = useCommand()
   const theme = useTheme()
   const language = useLanguage()
+  const tabs = useTabs()
   createEffect(() => setV2Toast(false))
   const initialDirectory = decode64(params.dir)
   const route = createMemo(() => {
@@ -1925,47 +1927,26 @@ export default function LegacyLayout(props: ParentProps) {
     const merged = createMemo(() => panelProps.mobile || (panelProps.merged ?? layout.sidebar.opened()))
     const hover = createMemo(() => !panelProps.mobile && panelProps.merged === false && !layout.sidebar.opened())
     const empty = createMemo(() => !params.dir && layout.projects.list().length === 0)
-    const projectName = createMemo(() => {
-      const item = project()
-      if (!item) return ""
-      return item.name || getFilename(item.worktree)
-    })
-    const projectId = createMemo(() => project()?.id ?? "")
-    const worktree = createMemo(() => project()?.worktree ?? "")
-    const slug = createMemo(() => {
-      const dir = worktree()
-      if (!dir) return ""
-      return base64Encode(dir)
-    })
-    const workspaces = createMemo(() => {
-      const item = project()
-      if (!item) return [] as string[]
-      return workspaceIds(item)
-    })
-    const unseenCount = createMemo(() =>
-      workspaces().reduce((total, directory) => total + notification.project.unseenCount(directory), 0),
-    )
-    const clearNotifications = () =>
-      workspaces()
-        .filter((directory) => notification.project.unseenCount(directory) > 0)
-        .forEach((directory) => notification.project.markViewed(directory))
-    const workspacesEnabled = createMemo(() => {
-      const item = project()
-      if (!item) return false
-      if (item.vcs !== "git") return false
-      return layout.sidebar.workspaces(item.worktree)()
-    })
-    const canToggle = createMemo(() => {
-      const item = project()
-      if (!item) return false
-      return item.vcs === "git" || layout.sidebar.workspaces(item.worktree)()
-    })
     const homedir = createMemo(() => serverSync().data.path.home)
+
+    const handleNewChat = () => {
+      try {
+        const list = layout.projects.list()
+        const current = list.find((p) => p.worktree === store.activeProject) ?? list[0]
+        if (current) {
+          tabs.newDraft({ server: server.key, directory: current.worktree }, "")
+        } else {
+          tabs.newDraft({ server: server.key, directory: "" }, "")
+        }
+      } catch (e) {
+        console.error("Error in handleNewChat", e)
+      }
+    }
 
     return (
       <div
         classList={{
-          "flex flex-col min-h-0 min-w-0 box-border rounded-tl-[12px] px-3": true,
+          "flex flex-col min-h-0 min-w-0 box-border rounded-tl-[12px] px-3 py-4": true,
           "border border-b-0 border-border-weak-base": !merged(),
           "border-l border-t border-border-weaker-base": merged(),
           "bg-background-base": merged() || hover(),
@@ -1977,182 +1958,300 @@ export default function LegacyLayout(props: ParentProps) {
           width: panelProps.mobile ? undefined : `${panel()}px`,
         }}
       >
-        <Show
-          when={project()}
-          fallback={
-            <Show when={empty()}>
-              <div class="flex-1 min-h-0 -mt-4 flex items-center justify-center px-6 pb-64 text-center">
-                <div class="mt-8 flex max-w-60 flex-col items-center gap-6 text-center">
-                  <div class="flex flex-col gap-3">
-                    <div class="text-14-medium text-text-strong">{language.t("sidebar.empty.title")}</div>
-                    <div class="text-14-regular text-text-base" style={{ "line-height": "var(--line-height-normal)" }}>
-                      {language.t("sidebar.empty.description")}
-                    </div>
-                  </div>
-                  <Button size="large" icon="folder-add-left" onClick={chooseProject}>
-                    {language.t("command.project.open")}
-                  </Button>
-                </div>
-              </div>
-            </Show>
-          }
-          keyed
-        >
-          {(project) => (
-            <>
-              <div class="shrink-0 pl-1 py-1">
-                <div class="group/project flex items-start justify-between gap-2 py-2 pl-2 pr-0">
-                  <div class="flex flex-col min-w-0">
-                    <InlineEditor
-                      id={`project:${projectId()}`}
-                      value={projectName}
-                      onSave={(next) => {
-                        void renameProject(project, next)
-                      }}
-                      class="text-14-medium text-text-strong truncate"
-                      displayClass="text-14-medium text-text-strong truncate"
-                      stopPropagation
-                    />
+        {/* Codex-like Shortcuts Header */}
+        <div class="flex flex-col gap-1 mb-4 shrink-0 select-none">
+          {/* Novo Chat Button */}
+          <button
+            type="button"
+            class="flex items-center justify-between w-full px-3 py-2 rounded-lg bg-v2-background-bg-deep text-text-strong hover:bg-[#12C79A]/10 hover:text-[#12C79A] ring-1 ring-border-weak-base/10 hover:ring-[#12C79A]/30 transition-all font-medium text-[13.5px] cursor-pointer mb-2"
+            onClick={handleNewChat}
+          >
+            <div class="flex items-center gap-2">
+              <IconV2 name="edit" class="size-4" />
+              <span>Novo chat</span>
+            </div>
+            <span class="text-[10px] bg-background-base/60 px-1.5 py-0.5 rounded text-text-muted font-normal">
+              Ctrl+N
+            </span>
+          </button>
+          
+          {/* Global Search */}
+          <button
+            type="button"
+            class="flex items-center gap-3 w-full px-3 py-1.5 rounded-md text-text-base hover:bg-v2-background-bg-deep hover:text-[#12C79A] transition-colors text-left text-[13px] font-medium"
+            onClick={() => {
+              command.trigger("command.palette")
+            }}
+          >
+            <IconV2 name="search" class="size-4 text-text-muted" />
+            <span>Pesquisar</span>
+          </button>
 
-                    <Tooltip
-                      placement="bottom"
-                      gutter={2}
-                      value={worktree()}
-                      class="shrink-0"
-                      contentStyle={{
-                        "max-width": "640px",
-                        transform: "translate3d(52px, 0, 0)",
+          {/* Agendado */}
+          <button
+            type="button"
+            class="flex items-center gap-3 w-full px-3 py-1.5 rounded-md text-text-base hover:bg-v2-background-bg-deep hover:text-[#12C79A] transition-colors text-left text-[13px] font-medium"
+          >
+            <IconV2 name="clock" class="size-4 text-text-muted" />
+            <span>Agendado</span>
+          </button>
+
+          {/* Plugins */}
+          <button
+            type="button"
+            class="flex items-center gap-3 w-full px-3 py-1.5 rounded-md text-text-base hover:bg-v2-background-bg-deep hover:text-[#12C79A] transition-colors text-left text-[13px] font-medium"
+          >
+            <IconV2 name="grid-plus" class="size-4 text-text-muted" />
+            <span>Plugins</span>
+          </button>
+        </div>
+
+        <div class="h-px bg-border-weaker-base/20 mb-4 shrink-0" />
+
+        {/* Active Session Tabs (Abertas) */}
+        <Show when={tabs.store.length > 0}>
+          <div class="flex flex-col gap-1 mb-4 shrink-0 pr-1">
+            <div class="flex items-center justify-between px-2 py-1 select-none">
+              <span class="text-[11px] uppercase tracking-wider text-text-muted font-bold">
+                Sessões Abertas
+              </span>
+              <span class="text-[10px] bg-background-stronger px-1.5 py-0.5 rounded text-text-base">
+                {tabs.store.length}
+              </span>
+            </div>
+            <div class="flex flex-col gap-0.5 max-h-[160px] overflow-y-auto no-scrollbar">
+              <For each={tabs.store}>
+                {(tab, index) => {
+                  const active = () => {
+                    const r = layout.route()
+                    if (tab.type === "draft") {
+                      return r.type === "draft" && r.draftID === tab.draftID
+                    }
+                    if (tab.type === "session") {
+                      return r.type === "session" && r.sessionId === tab.sessionId
+                    }
+                    return false
+                  }
+                  
+                  return (
+                    <div
+                      class="group relative flex items-center justify-between rounded-md pl-2 pr-1.5 py-1.5 cursor-pointer text-[13px] font-medium transition-colors select-none"
+                      classList={{
+                        "bg-background-stronger text-text-strong border-l-2 border-[#12C79A]": active(),
+                        "text-text-base hover:bg-background-stronger hover:text-text-strong": !active(),
+                      }}
+                      onClick={() => {
+                        tabs.select(tab)
                       }}
                     >
-                      <span class="text-12-regular text-text-base truncate select-text">
-                        {worktree().replace(homedir(), "~")}
-                      </span>
-                    </Tooltip>
-                  </div>
-
-                  <DropdownMenu modal={!sidebarHovering()}>
-                    <DropdownMenu.Trigger
-                      as={IconButton}
-                      icon="dot-grid"
-                      variant="ghost"
-                      data-action="project-menu"
-                      data-project={slug()}
-                      class="shrink-0 size-6 rounded-md transition-opacity data-[expanded]:bg-surface-base-active"
-                      classList={{
-                        "opacity-100": panelProps.mobile || merged(),
-                        "opacity-0 group-hover/project:opacity-100 group-focus-within/project:opacity-100 data-[expanded]:opacity-100":
-                          !panelProps.mobile && !merged(),
-                      }}
-                      aria-label={language.t("common.moreOptions")}
-                    />
-                    <DropdownMenu.Portal>
-                      <DropdownMenu.Content class="mt-1">
-                        <DropdownMenu.Item
-                          onSelect={() => {
-                            showEditProjectDialog(server.current!, project)
-                          }}
+                      <div class="flex items-center gap-2 min-w-0 flex-1">
+                        <Show
+                          when={tab.type === "session"}
+                          fallback={<IconV2 name="edit" class="size-4 shrink-0 text-text-base" />}
                         >
-                          <DropdownMenu.ItemLabel>{language.t("common.edit")}</DropdownMenu.ItemLabel>
-                        </DropdownMenu.Item>
-                        <DropdownMenu.Item
-                          data-action="project-workspaces-toggle"
-                          data-project={slug()}
-                          disabled={!canToggle()}
-                          onSelect={() => {
-                            toggleProjectWorkspaces(project)
-                          }}
-                        >
-                          <DropdownMenu.ItemLabel>
-                            {workspacesEnabled()
-                              ? language.t("sidebar.workspaces.disable")
-                              : language.t("sidebar.workspaces.enable")}
-                          </DropdownMenu.ItemLabel>
-                        </DropdownMenu.Item>
-                        <DropdownMenu.Item
-                          data-action="project-clear-notifications"
-                          data-project={slug()}
-                          disabled={unseenCount() === 0}
-                          onSelect={clearNotifications}
-                        >
-                          <DropdownMenu.ItemLabel>
-                            {language.t("sidebar.project.clearNotifications")}
-                          </DropdownMenu.ItemLabel>
-                        </DropdownMenu.Item>
-                        <DropdownMenu.Separator />
-                        <DropdownMenu.Item
-                          data-action="project-close-menu"
-                          data-project={slug()}
-                          onSelect={() => {
-                            const dir = worktree()
-                            if (!dir) return
-                            closeProject(dir)
-                          }}
-                        >
-                          <DropdownMenu.ItemLabel>{language.t("common.close")}</DropdownMenu.ItemLabel>
-                        </DropdownMenu.Item>
-                      </DropdownMenu.Content>
-                    </DropdownMenu.Portal>
-                  </DropdownMenu>
-                </div>
-              </div>
-
-              <div class="flex-1 min-h-0 flex flex-col">
-                <Show
-                  when={workspacesEnabled()}
-                  fallback={
-                    <>
-                      <div class="shrink-0 py-4">
-                        <Button
-                          size="large"
-                          class="w-full"
-                          onClick={() => {
-                            const dir = worktree()
-                            if (!dir) return
-                            navigateWithSidebarReset(`/${base64Encode(dir)}/session`)
-                          }}
-                        >
-                          <IconV2 name="edit" size="small" />
-                          {language.t("command.session.new")}
-                        </Button>
+                          <IconV2 name="bubble-5" class="size-4 shrink-0 text-[#12C79A]" />
+                        </Show>
+                        <span class="truncate pr-4">
+                          {tab.type === "session"
+                            ? (tabs.info[tabKey(tab)]?.title || "Sessão")
+                            : "Nova sessão"}
+                        </span>
                       </div>
-                      <div class="flex-1 min-h-0">
-                        <LocalWorkspace
-                          ctx={workspaceSidebarCtx}
-                          project={project}
-                          sortNow={sortNow}
-                          mobile={panelProps.mobile}
-                        />
-                      </div>
-                    </>
-                  }
-                >
-                  <>
-                    <div class="shrink-0 py-4">
-                      <Button
-                        size="large"
-                        icon="plus-small"
-                        class="w-full"
-                        onClick={() => {
-                          void createWorkspace(project)
+                      <button
+                        type="button"
+                        class="opacity-0 group-hover:opacity-100 hover:bg-background-base p-0.5 rounded transition-opacity"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          tabs.closeTab(index())
                         }}
                       >
-                        {language.t("workspace.new")}
-                      </Button>
+                        <IconV2 name="xmark-small" class="size-3.5" />
+                      </button>
                     </div>
-                    <div class="relative flex-1 min-h-0">
-                      <DragDropProvider
-                        onDragStart={handleWorkspaceDragStart}
-                        onDragEnd={handleWorkspaceDragEnd}
-                        onDragOver={handleWorkspaceDragOver}
-                        collisionDetector={closestCenter}
-                      >
-                        <DragDropSensors />
-                        <ConstrainDragXAxis />
-                        <div
-                          ref={(el) => {
-                            if (!panelProps.mobile) scrollContainerRef = el
+                  )
+                }}
+              </For>
+            </div>
+            <div class="h-px bg-border-weaker-base/20 my-2" />
+          </div>
+        </Show>
+
+        {/* Projetos Label */}
+        <div class="text-[11px] uppercase tracking-wider text-text-muted font-bold px-2 py-1 select-none mb-1 shrink-0">
+          Projetos
+        </div>
+
+        {/* Projects Unified Vertical List */}
+        <div class="flex-1 min-h-0 overflow-y-auto no-scrollbar flex flex-col gap-4">
+          <Show
+            when={layout.projects.list().length > 0}
+            fallback={
+              <Show when={empty()}>
+                <div class="flex-1 min-h-0 -mt-4 flex items-center justify-center px-6 pb-64 text-center">
+                  <div class="mt-8 flex max-w-60 flex-col items-center gap-6 text-center">
+                    <div class="flex flex-col gap-3">
+                      <div class="text-14-medium text-text-strong">{language.t("sidebar.empty.title")}</div>
+                      <div class="text-14-regular text-text-base" style={{ "line-height": "var(--line-height-normal)" }}>
+                        {language.t("sidebar.empty.description")}
+                      </div>
+                    </div>
+                    <Button size="large" icon="folder-add-left" onClick={chooseProject}>
+                      {language.t("command.project.open")}
+                    </Button>
+                  </div>
+                </div>
+              </Show>
+            }
+          >
+            <For each={layout.projects.list()}>
+              {(projectItem) => {
+                const projectName = () => projectItem.name || getFilename(projectItem.worktree)
+                const projectId = () => projectItem.id
+                const worktree = () => projectItem.worktree
+                const slug = () => base64Encode(worktree())
+                const workspaces = () => workspaceIds(projectItem)
+                
+                const unseenCount = createMemo(() =>
+                  workspaces().reduce((total, directory) => total + notification.project.unseenCount(directory), 0),
+                )
+                const clearNotifications = () =>
+                  workspaces()
+                    .filter((directory) => notification.project.unseenCount(directory) > 0)
+                    .forEach((directory) => notification.project.markViewed(directory))
+                const workspacesEnabled = createMemo(() => {
+                  if (projectItem.vcs !== "git") return false
+                  return layout.sidebar.workspaces(projectItem.worktree)()
+                })
+                const canToggle = createMemo(() => {
+                  return projectItem.vcs === "git" || layout.sidebar.workspaces(projectItem.worktree)()
+                })
+
+                // Sessions calculation to display 'Nenhum chat'
+                const projectSessions = createMemo(() => {
+                  try {
+                    const sync = serverSync()
+                    if (!sync) return []
+                    const dirs = [projectItem.worktree, ...(projectItem.sandboxes ?? [])]
+                    const now = Date.now()
+                    const result: Session[] = []
+                    for (const dir of dirs) {
+                      const res = sync.child(dir, { bootstrap: true })
+                      if (!res) continue
+                      const dirStore = res[0]
+                      if (!dirStore) continue
+                      const dirSessions = sortedRootSessions(dirStore, now)
+                      if (dirSessions) result.push(...dirSessions)
+                    }
+                    return result
+                  } catch (e) {
+                    console.error("Error computing project sessions", e)
+                    return []
+                  }
+                })
+
+                return (
+                  <div class="flex flex-col min-w-0">
+                    {/* Project Header Item */}
+                    <div class="group/project flex items-center justify-between gap-2 py-1 pl-2 pr-0 select-none">
+                      <div class="flex items-center gap-2 min-w-0 flex-1">
+                        <IconV2 name="folder" class="size-4 shrink-0 text-text-muted" />
+                        <InlineEditor
+                          id={`project:${projectId()}`}
+                          value={projectName}
+                          onSave={(next) => {
+                            void renameProject(projectItem, next)
                           }}
-                          class="size-full flex flex-col py-2 gap-4 overflow-y-auto no-scrollbar [overflow-anchor:none]"
+                          class="text-[13.5px] font-semibold text-text-strong truncate"
+                          displayClass="text-[13.5px] font-semibold text-text-strong truncate"
+                          stopPropagation
+                        />
+                      </div>
+
+                      <DropdownMenu modal={!sidebarHovering()}>
+                        <DropdownMenu.Trigger
+                          as={IconButton}
+                          icon="dot-grid"
+                          variant="ghost"
+                          data-action="project-menu"
+                          data-project={slug()}
+                          class="shrink-0 size-6 rounded-md transition-opacity data-[expanded]:bg-surface-base-active"
+                          classList={{
+                            "opacity-100": panelProps.mobile || merged(),
+                            "opacity-0 group-hover/project:opacity-100 group-focus-within/project:opacity-100 data-[expanded]:opacity-100":
+                              !panelProps.mobile && !merged(),
+                          }}
+                          aria-label={language.t("common.moreOptions")}
+                        />
+                        <DropdownMenu.Portal>
+                          <DropdownMenu.Content class="mt-1">
+                            <DropdownMenu.Item
+                              onSelect={() => {
+                                showEditProjectDialog(server.current!, projectItem)
+                              }}
+                            >
+                              <DropdownMenu.ItemLabel>{language.t("common.edit")}</DropdownMenu.ItemLabel>
+                            </DropdownMenu.Item>
+                            <DropdownMenu.Item
+                              data-action="project-workspaces-toggle"
+                              data-project={slug()}
+                              disabled={!canToggle()}
+                              onSelect={() => {
+                                toggleProjectWorkspaces(projectItem)
+                              }}
+                            >
+                              <DropdownMenu.ItemLabel>
+                                {workspacesEnabled()
+                                  ? language.t("sidebar.workspaces.disable")
+                                  : language.t("sidebar.workspaces.enable")}
+                              </DropdownMenu.ItemLabel>
+                            </DropdownMenu.Item>
+                            <DropdownMenu.Item
+                              data-action="project-clear-notifications"
+                              data-project={slug()}
+                              disabled={unseenCount() === 0}
+                              onSelect={clearNotifications}
+                            >
+                              <DropdownMenu.ItemLabel>
+                                {language.t("sidebar.project.clearNotifications")}
+                              </DropdownMenu.ItemLabel>
+                            </DropdownMenu.Item>
+                            <DropdownMenu.Separator />
+                            <DropdownMenu.Item
+                              data-action="project-close-menu"
+                              data-project={slug()}
+                              onSelect={() => {
+                                const dir = worktree()
+                                if (!dir) return
+                                closeProject(dir)
+                              }}
+                            >
+                              <DropdownMenu.ItemLabel>{language.t("common.close")}</DropdownMenu.ItemLabel>
+                            </DropdownMenu.Item>
+                          </DropdownMenu.Content>
+                        </DropdownMenu.Portal>
+                      </DropdownMenu>
+                    </div>
+
+                    {/* Chats List or "Nenhum chat" */}
+                    <div class="pl-2 flex flex-col gap-1 border-l border-border-weaker-base/20 ml-3.5 mt-1 select-none">
+                      <Show
+                        when={projectSessions().length > 0}
+                        fallback={
+                          <div class="text-[12px] text-text-muted italic pl-6 py-0.5 select-none">
+                            Nenhum chat
+                          </div>
+                        }
+                      >
+                        <Show
+                          when={workspacesEnabled()}
+                          fallback={
+                            <LocalWorkspace
+                              ctx={workspaceSidebarCtx}
+                              project={projectItem}
+                              sortNow={sortNow}
+                              mobile={panelProps.mobile}
+                            />
+                          }
                         >
                           <SortableProvider ids={workspaces()}>
                             <For each={workspaces()}>
@@ -2160,32 +2259,26 @@ export default function LegacyLayout(props: ParentProps) {
                                 <SortableWorkspace
                                   ctx={workspaceSidebarCtx}
                                   directory={directory}
-                                  project={project}
+                                  project={projectItem}
                                   sortNow={sortNow}
                                   mobile={panelProps.mobile}
                                 />
                               )}
                             </For>
                           </SortableProvider>
-                        </div>
-                        <DragOverlay>
-                          <WorkspaceDragOverlay
-                            sidebarProject={sidebarProject}
-                            activeWorkspace={() => store.activeWorkspace}
-                            workspaceLabel={workspaceLabel}
-                          />
-                        </DragOverlay>
-                      </DragDropProvider>
+                        </Show>
+                      </Show>
                     </div>
-                  </>
-                </Show>
-              </div>
-            </>
-          )}
-        </Show>
+                  </div>
+                )
+              }}
+            </For>
+          </Show>
+        </div>
 
+        {/* Optional Getting Started widget */}
         <div
-          class="shrink-0 px-3 py-3"
+          class="shrink-0 px-1 py-3"
           classList={{
             hidden: store.gettingStartedDismissed || !(providers.all().size > 0 && providers.paid().length === 0),
           }}
@@ -2238,7 +2331,7 @@ export default function LegacyLayout(props: ParentProps) {
       settingsKeybind={() => command.keybind("settings.open")}
       onOpenSettings={openSettings}
       helpLabel={() => language.t("sidebar.help")}
-      onOpenHelp={() => platform.openLink("https://opencode.ai/desktop-feedback")}
+      onOpenHelp={() => platform.openLink("https://github.com/propagno")}
       renderPanel={() =>
         mobile ? <SidebarPanel project={currentProject} mobile /> : <SidebarPanel project={currentProject} merged />
       }
@@ -2246,7 +2339,17 @@ export default function LegacyLayout(props: ParentProps) {
   )
 
   return (
-    <div class="relative bg-background-base flex-1 min-h-0 min-w-0 flex flex-col select-none [&_input]:select-text [&_textarea]:select-text [&_[contenteditable]]:select-text">
+    <div
+      classList={{
+        "relative flex-1 min-h-0 min-w-0 flex flex-col select-none [&_input]:select-text [&_textarea]:select-text [&_[contenteditable]]:select-text": true,
+        "bg-v2-background-bg-deep": settings.general.newLayoutDesigns(),
+        "bg-background-base": !settings.general.newLayoutDesigns(),
+      }}
+      style={{
+        "padding-top": settings.general.newLayoutDesigns() ? "env(safe-area-inset-top, 0px)" : undefined,
+        "padding-bottom": settings.general.newLayoutDesigns() ? "env(safe-area-inset-bottom, 0px)" : undefined,
+      }}
+    >
       {autoselecting() ?? ""}
       <Titlebar update={titlebarUpdate} />
       <Show when={updateVersion() !== undefined}>
@@ -2345,12 +2448,72 @@ export default function LegacyLayout(props: ParentProps) {
             >
               <main
                 classList={{
-                  "size-full overflow-x-hidden flex flex-col items-start contain-strict border-t border-border-weak-base bg-background-base xl:border-l xl:rounded-tl-[12px]": true,
+                  "size-full overflow-hidden flex flex-row items-stretch contain-strict border-t border-border-weak-base bg-background-base xl:border-l xl:rounded-tl-[12px]": true,
                 }}
               >
-                <Show when={!autoselecting.loading} fallback={<div class="size-full" />}>
-                  {props.children}
+                {/* Active Session Tabs - Vertical Rail */}
+                <Show when={tabs.store.length > 0 && layout.route().type !== "home"}>
+                  <div class="w-14 shrink-0 bg-background-stronger border-r border-border-weaker-base flex flex-col items-center py-4 gap-3 overflow-y-auto no-scrollbar select-none">
+                    <For each={tabs.store}>
+                      {(tab, index) => {
+                        const active = () => {
+                          const r = layout.route()
+                          if (tab.type === "draft") {
+                            return r.type === "draft" && r.draftID === tab.draftID
+                          }
+                          if (tab.type === "session") {
+                            return r.type === "session" && r.sessionId === tab.sessionId
+                          }
+                          return false
+                        }
+
+                        const title = () => {
+                          return tab.type === "session"
+                            ? (tabs.info[tabKey(tab)]?.title || "Sessão")
+                            : "Nova sessão"
+                        }
+
+                        return (
+                          <Tooltip placement="right" value={title()}>
+                            <div
+                              class="group relative size-10 flex items-center justify-center rounded-lg cursor-pointer transition-all"
+                              classList={{
+                                "bg-v2-background-bg-deep shadow-xs text-text-strong ring-1 ring-[#12C79A]/50": active(),
+                                "text-text-base hover:bg-v2-background-bg-deep hover:text-text-strong": !active(),
+                              }}
+                              onClick={() => tabs.select(tab)}
+                            >
+                              <Show
+                                when={tab.type === "session"}
+                                fallback={<IconV2 name="edit" class="size-5" />}
+                              >
+                                <div class="relative size-8 flex items-center justify-center rounded bg-[#12C79A]/10 text-[#12C79A]">
+                                  <IconV2 name="bubble-5" class="size-4" />
+                                </div>
+                              </Show>
+
+                              {/* Tiny close button */}
+                              <button
+                                type="button"
+                                class="absolute -top-1 -right-1 size-4 bg-background-base rounded-full border border-border-weak-base opacity-0 group-hover:opacity-100 flex items-center justify-center hover:bg-text-diff-delete-base hover:text-white transition-all shadow-sm"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  tabs.closeTab(index())
+                                }}
+                              >
+                                <IconV2 name="xmark-small" class="size-2.5" />
+                              </button>
+                            </div>
+                          </Tooltip>
+                        )
+                      }}
+                    </For>
+                  </div>
                 </Show>
+
+                <div class="flex-1 min-w-0 min-h-0 flex flex-col items-start relative size-full">
+                  {props.children}
+                </div>
               </main>
             </div>
 
@@ -2393,10 +2556,9 @@ export default function LegacyLayout(props: ParentProps) {
             </div>
           </div>
         </div>
-        {import.meta.env.DEV && import.meta.env.VITE_DISABLE_DEBUG_BAR !== "1" && <DebugBar />}
+        {import.meta.env.DEV && import.meta.env.VITE_DISABLE_DEBUG_BAR !== "1" && (settings.general.newLayoutDesigns() ? <DebugBar inline /> : <DebugBar />)}
       </div>
-      <HelpButton />
-      <ToastRegion v2={false} />
+      <ToastRegion v2={settings.general.newLayoutDesigns()} />
     </div>
   )
 }

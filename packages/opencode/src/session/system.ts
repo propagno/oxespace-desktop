@@ -12,6 +12,7 @@ import PROMPT_KIMI from "./prompt/kimi.txt"
 
 import PROMPT_CODEX from "./prompt/codex.txt"
 import PROMPT_TRINITY from "./prompt/trinity.txt"
+import PROMPT_CAVEMAN from "./prompt/caveman.txt"
 import type { Provider } from "@/provider/provider"
 import type { Agent } from "@/agent/agent"
 import { Permission } from "@/permission"
@@ -22,6 +23,7 @@ import { LocationServiceMap, locationServiceMapLayer } from "@opencode-ai/core/l
 import { Reference } from "@opencode-ai/core/reference"
 import { MCP } from "@/mcp"
 import { PermissionV1 } from "@opencode-ai/core/v1/permission"
+import { Config } from "@/config/config"
 
 export function provider(model: Provider.Model) {
   if (model.api.id.includes("gpt-4") || model.api.id.includes("o1") || model.api.id.includes("o3"))
@@ -53,14 +55,17 @@ const layer = Layer.effect(
     const skill = yield* Skill.Service
     const mcp = yield* MCP.Service
     const locations = yield* LocationServiceMap.Service
+    const config = yield* Config.Service
 
     return Service.of({
       environment: Effect.fn("SystemPrompt.environment")(function* (model: Provider.Model) {
         const ctx = yield* InstanceState.context
+        const cfg = yield* config.get()
         const references = yield* Effect.gen(function* () {
           return (yield* (yield* Reference.Service).list()).filter((reference) => reference.description !== undefined)
         }).pipe(Effect.provide(locations.get(Location.Ref.make({ directory: AbsolutePath.make(ctx.directory) }))))
         return [
+          cfg.experimental?.caveman_mode ? PROMPT_CAVEMAN : undefined,
           [
             `You are powered by the model named ${model.api.id}. The exact model ID is ${model.providerID}/${model.api.id}`,
             `Here is some useful information about the environment you are running in:`,
@@ -137,7 +142,7 @@ const locationServiceMapNode = LayerNode.make({
 export const node = LayerNode.make({
   service: Service,
   layer: layer,
-  deps: [Skill.node, MCP.node, locationServiceMapNode],
+  deps: [Skill.node, MCP.node, locationServiceMapNode, Config.node],
 })
 
 export * as SystemPrompt from "./system"

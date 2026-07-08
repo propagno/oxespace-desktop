@@ -1,5 +1,8 @@
 const PROVIDER_ID = /^[a-z0-9][a-z0-9-_]*$/
 const OPENAI_COMPATIBLE = "@ai-sdk/openai-compatible"
+const ANTHROPIC_NATIVE = "@ai-sdk/anthropic"
+
+export type Protocol = "openai" | "anthropic"
 
 type Translator = (key: string, vars?: Record<string, string | number | boolean>) => string
 
@@ -30,14 +33,17 @@ export type HeaderRow = {
 export type FormState = {
   providerID: string
   name: string
+  protocol: Protocol
   baseURL: string
   apiKey: string
+  timeout: string
   models: ModelRow[]
   headers: HeaderRow[]
   err: {
     providerID?: string
     name?: string
     baseURL?: string
+    timeout?: string
   }
 }
 
@@ -68,6 +74,13 @@ export function validateCustomProvider(input: ValidateArgs) {
     ? input.t("provider.custom.error.baseURL.required")
     : !/^https?:\/\//.test(baseURL)
       ? input.t("provider.custom.error.baseURL.format")
+      : undefined
+
+  const timeoutRaw = input.form.timeout.trim()
+  const timeout = timeoutRaw ? Number(timeoutRaw) : undefined
+  const timeoutError =
+    timeoutRaw && (!Number.isInteger(timeout) || (timeout ?? 0) <= 0)
+      ? input.t("provider.custom.error.timeout.format")
       : undefined
 
   const disabled = input.disabledProviders.includes(providerID)
@@ -123,9 +136,10 @@ export function validateCustomProvider(input: ValidateArgs) {
     providerID: idError ?? existsError,
     name: nameError,
     baseURL: urlError,
+    timeout: timeoutError,
   }
 
-  const ok = !idError && !existsError && !nameError && !urlError && modelsValid && headersValid
+  const ok = !idError && !existsError && !nameError && !urlError && !timeoutError && modelsValid && headersValid
   if (!ok) return { err, models, headers }
 
   return {
@@ -137,11 +151,12 @@ export function validateCustomProvider(input: ValidateArgs) {
       name,
       key,
       config: {
-        npm: OPENAI_COMPATIBLE,
+        npm: input.form.protocol === "anthropic" ? ANTHROPIC_NATIVE : OPENAI_COMPATIBLE,
         name,
         ...(env ? { env: [env] } : {}),
         options: {
           baseURL,
+          ...(timeout ? { headerTimeout: timeout } : {}),
           ...(Object.keys(headerConfig).length ? { headers: headerConfig } : {}),
         },
         models: modelConfig,

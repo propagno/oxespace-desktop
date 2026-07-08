@@ -120,7 +120,12 @@ function getConfig() {
         appId,
         productName: "OXESpace Beta",
         protocols: { name: "OXESpace Beta", schemes: ["oxespace"] },
-        // No publish feed yet for this fork — re-add once a real GitHub repo exists.
+        publish: {
+          provider: "github",
+          owner: "propagno",
+          repo: "oxespace-desktop",
+          channel: "beta",
+        },
         rpm: { packageName: "oxespace-desktop-beta" },
       }
     }
@@ -130,7 +135,12 @@ function getConfig() {
         appId,
         productName: "OXESpace",
         protocols: { name: "OXESpace", schemes: ["oxespace"] },
-        // No publish feed yet for this fork — re-add once a real GitHub repo exists.
+        publish: {
+          provider: "github",
+          owner: "propagno",
+          repo: "oxespace-desktop",
+          channel: "latest",
+        },
         rpm: { packageName: "oxespace-desktop" },
       }
     }

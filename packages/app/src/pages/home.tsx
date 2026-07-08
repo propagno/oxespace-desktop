@@ -18,7 +18,7 @@ import { makeEventListener } from "@solid-primitives/event-listener"
 import { createStore, produce } from "solid-js/store"
 import { useQuery } from "@tanstack/solid-query"
 import { Button } from "@opencode-ai/ui/button"
-import { Logo } from "@opencode-ai/ui/logo"
+import { Logo, Mark } from "@opencode-ai/ui/logo"
 import { Spinner } from "@opencode-ai/ui/spinner"
 import { ScrollView } from "@opencode-ai/ui/scroll-view"
 import { ProjectAvatar } from "@opencode-ai/ui/v2/project-avatar-v2"
@@ -539,8 +539,8 @@ export function NewHome() {
   }
 
   return (
-    <div class="rounded-[10px] shadow-[var(--v2-elevation-raised)] m-2 min-h-0 lg:overflow-hidden bg-v2-background-bg-base self-stretch flex-1">
-      <div class="mx-auto grid h-full w-full max-w-[1080px] grid-rows-[auto_minmax(0,1fr)_auto] gap-4 px-3 lg:grid-cols-[280px_minmax(0,720px)] lg:grid-rows-1 lg:gap-8 lg:px-6">
+    <div class="rounded-[10px] shadow-[var(--v2-elevation-raised)] m-2 min-h-0 lg:overflow-hidden bg-v2-background-bg-base self-stretch flex-1 relative overflow-hidden">
+      <div class="mx-auto grid h-full w-full max-w-[1080px] grid-rows-[auto_minmax(0,1fr)_auto] gap-4 px-3 lg:grid-cols-[280px_minmax(0,720px)] lg:grid-rows-1 lg:gap-0 lg:px-6 relative z-10">
         <HomeProjectColumn
           projects={projects()}
           recentlyClosed={recentlyClosed()}
@@ -564,12 +564,12 @@ export function NewHome() {
           clearNotifications={clearNotifications}
           unseenCount={unseenCount}
           openSettings={openSettings}
-          openHelp={() => platform.openLink("https://opencode.ai/desktop-feedback")}
+          openHelp={() => platform.openLink("https://github.com/propagno")}
           language={language}
         />
 
         <section
-          class="min-h-0 min-w-0 flex-1 flex flex-col pt-6 lg:pt-12 relative"
+          class="min-h-0 min-w-0 flex-1 flex flex-col pt-6 lg:pt-12 lg:pl-6 relative"
           aria-label={language.t("sidebar.project.recentSessions")}
         >
           <HomeSessionSearch
@@ -656,7 +656,7 @@ export function NewHome() {
         <HomeUtilityNav
           class="flex lg:hidden"
           openSettings={openSettings}
-          openHelp={() => platform.openLink("https://opencode.ai/desktop-feedback")}
+          openHelp={() => platform.openLink("https://github.com/propagno")}
           language={language}
         />
       </div>
@@ -697,7 +697,7 @@ function HomeProjectColumn(props: {
 
   return (
     <aside
-      class="mt-6 flex min-h-0 min-w-0 flex-col gap-4 overflow-hidden lg:mt-14 lg:pt-[52px]"
+      class="mt-6 flex min-h-0 min-w-0 flex-col gap-4 overflow-hidden lg:mt-14 lg:pt-[52px] lg:pr-6 lg:border-r lg:border-v2-border-border-base"
       aria-label={props.language.t("home.projects")}
     >
       <div class="flex h-7 min-w-0 shrink-0 items-center justify-between pl-1.5 pr-3">
@@ -1470,16 +1470,24 @@ function HomeSessionRow(props: {
 function HomeSessionsEmpty(props: { onNewSession?: () => void }) {
   const language = useLanguage()
   return (
-    <div class="flex min-h-full flex-col items-center gap-4 px-6 pt-[52px] text-center">
-      <div class="shrink-0 text-[13px] leading-[13px] tracking-[-0.04px] text-v2-text-text-base [font-weight:530]">
+    <div class="flex min-h-full flex-col items-center gap-4 px-6 pt-16 text-center justify-center">
+      <Mark class="w-14 h-14 mb-2 opacity-[0.35] text-[#12C79A]" />
+      <div class="shrink-0 text-[16px] font-semibold leading-6 tracking-[-0.04px] text-v2-text-text-base mb-1">
         {language.t("home.sessions.empty")}
       </div>
-      <p class="mb-1 text-center text-[13px] leading-5 tracking-[-0.04px] text-v2-text-text-muted [font-weight:440]">
+      <p class="max-w-[320px] mb-3 text-center text-[13px] leading-5 tracking-[-0.04px] text-v2-text-text-muted">
         {language.t("home.sessions.empty.description")}
       </p>
       <Show when={props.onNewSession}>
         {(onNewSession) => (
-          <ButtonV2 data-action="home-new-session" variant="neutral" size="normal" icon="edit" onClick={onNewSession()}>
+          <ButtonV2
+            data-action="home-new-session"
+            variant="neutral"
+            class="!bg-[#12C79A] hover:!bg-[#6EEBD4] !text-[#070f1a] font-semibold transition-colors"
+            size="large"
+            icon="edit"
+            onClick={onNewSession()}
+          >
             {language.t("command.session.new")}
           </ButtonV2>
         )}

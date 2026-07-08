@@ -1680,6 +1680,7 @@ export type PermissionConfig =
       lsp?: PermissionRuleConfig
       doom_loop?: PermissionActionConfig
       skill?: PermissionRuleConfig
+      github?: PermissionRuleConfig
       [key: string]: PermissionRuleConfig | PermissionActionConfig | undefined
     }
 
@@ -2020,6 +2021,9 @@ export type Config = {
     primary_tools?: Array<string>
     continue_loop_on_deny?: boolean
     mcp_timeout?: number
+    caveman_mode?: boolean
+    github_tool?: boolean
+    codegraph?: boolean
     policies?: Array<ConfigV2ExperimentalPolicy>
   }
 }

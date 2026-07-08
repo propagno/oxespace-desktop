@@ -27,7 +27,7 @@ import { Link } from "@/components/link"
 import { useServerSDK } from "@/context/server-sdk"
 import { useServerSync } from "@/context/server-sync"
 import { useLanguage } from "@/context/language"
-import { popularProviders, useProviders } from "@/hooks/use-providers"
+import { useProviders } from "@/hooks/use-providers"
 import { CustomProviderForm } from "./dialog-custom-provider"
 
 const CUSTOM_ID = "_custom"
@@ -96,44 +96,18 @@ export const DialogConnectProvider: Component<{
 }
 
 function ProviderPicker(props: { directory?: Accessor<string | undefined>; onSelect: (provider: string) => void }) {
-  const providers = useProviders(props.directory)
   const language = useLanguage()
-  const popularGroup = () => language.t("dialog.provider.group.popular")
-  const otherGroup = () => language.t("dialog.provider.group.other")
   const customLabel = () => language.t("settings.providers.tag.custom")
-  const note = (id: string) => {
-    if (id === "anthropic") return language.t("dialog.provider.anthropic.note")
-    if (id === "openai") return language.t("dialog.provider.openai.note")
-    if (id.startsWith("github-copilot")) return language.t("dialog.provider.copilot.note")
-    if (id === "opencode-go") return language.t("dialog.provider.opencodeGo.tagline")
-    return undefined
-  }
 
   return (
     <List
       class="px-3"
-      search={{ placeholder: language.t("dialog.provider.search.placeholder"), autofocus: true }}
       emptyMessage={language.t("dialog.provider.empty")}
       activeIcon="plus-small"
       key={(x) => x?.id}
       items={() => {
         language.locale()
-        return [{ id: CUSTOM_ID, name: customLabel() }, ...providers.all().values()]
-      }}
-      filterKeys={["id", "name"]}
-      groupBy={(x) => (popularProviders.includes(x.id) ? popularGroup() : otherGroup())}
-      sortBy={(a, b) => {
-        if (a.id === CUSTOM_ID) return -1
-        if (b.id === CUSTOM_ID) return 1
-        if (popularProviders.includes(a.id) && popularProviders.includes(b.id))
-          return popularProviders.indexOf(a.id) - popularProviders.indexOf(b.id)
-        return a.name.localeCompare(b.name)
-      }}
-      sortGroupsBy={(a, b) => {
-        const popular = popularGroup()
-        if (a.category === popular && b.category !== popular) return -1
-        if (b.category === popular && a.category !== popular) return 1
-        return 0
+        return [{ id: CUSTOM_ID, name: customLabel() }]
       }}
       onSelect={(x) => {
         if (!x) return
@@ -144,19 +118,7 @@ function ProviderPicker(props: { directory?: Accessor<string | undefined>; onSel
         <div class="px-1.25 w-full flex items-center gap-x-3">
           <ProviderIcon data-slot="list-item-extra-icon" id={i.id} />
           <span>{i.name}</span>
-          <Show when={i.id === "opencode"}>
-            <div class="text-14-regular text-text-weak">{language.t("dialog.provider.opencode.tagline")}</div>
-          </Show>
-          <Show when={i.id === CUSTOM_ID}>
-            <Tag>{language.t("settings.providers.tag.custom")}</Tag>
-          </Show>
-          <Show when={i.id === "opencode"}>
-            <Tag>{language.t("dialog.provider.tag.recommended")}</Tag>
-          </Show>
-          <Show when={note(i.id)}>{(value) => <div class="text-14-regular text-text-weak">{value()}</div>}</Show>
-          <Show when={i.id === "opencode-go"}>
-            <Tag>{language.t("dialog.provider.tag.recommended")}</Tag>
-          </Show>
+          <Tag>{language.t("settings.providers.tag.custom")}</Tag>
         </div>
       )}
     </List>

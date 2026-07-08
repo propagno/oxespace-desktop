@@ -244,14 +244,6 @@ const SettingsProvidersContent: Component<{ onBack?: () => void }> = (props) => 
               </Button>
             </div>
           </SettingsList>
-
-          <Button
-            variant="ghost"
-            class="px-0 py-0 mt-5 text-14-medium text-text-interactive-base text-left justify-start hover:bg-transparent active:bg-transparent"
-            onClick={() => connect()}
-          >
-            {language.t("dialog.provider.viewAll")}
-          </Button>
         </div>
       </div>
     </div>

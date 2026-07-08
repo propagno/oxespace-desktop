@@ -442,8 +442,6 @@ export function Titlebar(props: { update?: TitlebarUpdate }) {
               ].filter((v) => v !== undefined)
             })
 
-            const [tabsAreOverflowing, setTabsAreOverflowing] = createSignal(false)
-
             return (
               <div
                 class="h-full flex-1 overflow-hidden flex flex-row items-center gap-1.5 px-2 md:pr-3"
@@ -458,6 +456,28 @@ export function Titlebar(props: { update?: TitlebarUpdate }) {
                 <Show when={windows() || linux()}>
                   <WindowsAppMenu command={command} platform={platform} variant="v2" />
                 </Show>
+                <TooltipV2
+                  placement="bottom"
+                  value={
+                    <>
+                      {language.t("command.sidebar.toggle")}
+                      <KeybindV2 keys={command.keybindParts("sidebar.toggle")} variant="neutral" />
+                    </>
+                  }
+                  class="shrink-0"
+                >
+                  <IconButtonV2
+                    type="button"
+                    variant="ghost-muted"
+                    size="large"
+                    class="!w-9 shrink-0"
+                    icon={<IconV2 name="sidebar-right" />}
+                    state={layout.sidebar.opened() ? "pressed" : undefined}
+                    onClick={layout.sidebar.toggle}
+                    aria-label={language.t("command.sidebar.toggle")}
+                    aria-pressed={layout.sidebar.opened()}
+                  />
+                </TooltipV2>
                 <TooltipV2
                   placement="bottom"
                   value={
@@ -481,21 +501,6 @@ export function Titlebar(props: { update?: TitlebarUpdate }) {
                   />
                 </TooltipV2>
 
-                <TitlebarTabStrip
-                  tabs={tabsStore}
-                  currentTab={currentTab}
-                  forceTruncate={tabsAreOverflowing()}
-                  onOverflowChange={setTabsAreOverflowing}
-                  onNavigate={(tab, el) => {
-                    tabs.select(tab)
-                    el?.scrollIntoView({ behavior: "instant" })
-                  }}
-                  onClose={(tab) => {
-                    const index = tabsStore.findIndex((item) => tabKey(item) === tabKey(tab))
-                    if (index !== -1) tabsStoreActions.closeTab(index)
-                  }}
-                  onReorder={(keys) => tabsStoreActions.reorder(keys)}
-                />
                 <Show when={!creating()}>
                   <TooltipV2
                     placement="bottom"

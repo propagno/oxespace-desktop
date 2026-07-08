@@ -246,10 +246,6 @@ export const SettingsProvidersV2: Component<{ onBack?: () => void }> = (props) =
               </ButtonV2>
             </div>
           </SettingsListV2>
-
-          <button type="button" class="settings-v2-providers-view-all" onClick={() => connect()}>
-            {language.t("dialog.provider.viewAll")}
-          </button>
         </div>
       </div>
     </>

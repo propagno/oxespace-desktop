@@ -179,6 +179,15 @@ export const Info = Schema.Struct({
       mcp_timeout: Schema.optional(PositiveInt).annotate({
         description: "Timeout in milliseconds for model context protocol (MCP) requests",
       }),
+      caveman_mode: Schema.optional(Schema.Boolean).annotate({
+        description: "Have the agent communicate in short, blunt, caveman-style language",
+      }),
+      github_tool: Schema.optional(Schema.Boolean).annotate({
+        description: "Enable the github tool for managing pull requests, issues, and releases via the gh CLI",
+      }),
+      codegraph: Schema.optional(Schema.Boolean).annotate({
+        description: "Enable the CodeGraph MCP server for semantic code search and indexing",
+      }),
       policies: Schema.optional(Schema.mutable(Schema.Array(ConfigExperimental.Policy))).annotate({
         description: "Policy statements applied to supported resources, such as provider access",
       }),

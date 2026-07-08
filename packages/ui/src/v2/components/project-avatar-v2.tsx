@@ -1,4 +1,4 @@
-import { type ComponentProps, splitProps, Show } from "solid-js"
+import { type ComponentProps, splitProps, Show, createSignal } from "solid-js"
 import "./project-avatar-v2.css"
 
 const segmenter =
@@ -38,7 +38,9 @@ export interface ProjectAvatarProps extends ComponentProps<"div"> {
 
 export function ProjectAvatar(props: ProjectAvatarProps) {
   const [split, rest] = splitProps(props, ["fallback", "src", "variant", "unread", "class", "classList", "style"])
-  const src = split.src
+  const [failed, setFailed] = createSignal(false)
+  const showImage = () => split.src && !failed()
+
   return (
     <div
       {...rest}
@@ -53,10 +55,15 @@ export function ProjectAvatar(props: ProjectAvatarProps) {
       <div
         data-slot="project-avatar-surface"
         data-variant={split.variant ?? "gray"}
-        data-has-image={src ? "" : undefined}
+        data-has-image={showImage() ? "" : undefined}
       >
-        <Show when={src} fallback={first(split.fallback)}>
-          {(value) => <img src={value()} draggable={false} data-slot="project-avatar-image" />}
+        <Show when={showImage()} fallback={first(split.fallback)}>
+          <img
+            src={split.src}
+            draggable={false}
+            data-slot="project-avatar-image"
+            onError={() => setFailed(true)}
+          />
         </Show>
       </div>
       <Show when={split.unread}>
@@ -65,3 +72,4 @@ export function ProjectAvatar(props: ProjectAvatarProps) {
     </div>
   )
 }
+
