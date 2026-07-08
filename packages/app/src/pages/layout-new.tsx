@@ -1,4 +1,4 @@
-import { createEffect, createResource, Suspense, Show, For, createMemo, type ParentProps } from "solid-js"
+import { createEffect, Suspense, Show, For, createMemo, type ParentProps } from "solid-js"
 import { useNavigate } from "@solidjs/router"
 import { DebugBar } from "@/components/debug-bar"
 import { Titlebar, type TitlebarUpdate } from "@/components/titlebar"
@@ -6,17 +6,16 @@ import { usePlatform } from "@/context/platform"
 import { setNavigate } from "@/utils/notification-click"
 import { setV2Toast, ToastRegion } from "@/utils/toast"
 import { Icon as IconV2 } from "@opencode-ai/ui/v2/icon"
-import { useTabs, tabKey, type Tab } from "@/context/tabs"
+import { useTabs } from "@/context/tabs"
 import { useLayout } from "@/context/layout"
-import { useGlobal } from "@/context/global"
-import { ServerConnection, useServer } from "@/context/server"
+import { useServer } from "@/context/server"
 import { useCommand, type CommandOption } from "@/context/command"
 import { useLanguage } from "@/context/language"
 import { useServerSync } from "@/context/server-sync"
 import { useServerSDK } from "@/context/server-sdk"
 import { sortedRootSessions } from "@/pages/layout/helpers"
 import { Session } from "@opencode-ai/sdk/v2/client"
-import { produce } from "solid-js/store"
+import { createStore, produce } from "solid-js/store"
 import { Binary } from "@opencode-ai/core/util/binary"
 
 export default function NewLayout(props: ParentProps) {
@@ -25,12 +24,12 @@ export default function NewLayout(props: ParentProps) {
   setNavigate(navigate)
   const tabs = useTabs()
   const layout = useLayout()
-  const global = useGlobal()
   const command = useCommand()
   const language = useLanguage()
   const serverSync = useServerSync()
   const serverSDK = useServerSDK()
   const server = useServer()
+  const [collapsedProjects, setCollapsedProjects] = createStore<Record<string, boolean>>({})
 
   async function archiveSession(session: Session) {
     const [store, setStore] = serverSync().child(session.directory)
@@ -77,35 +76,6 @@ export default function NewLayout(props: ParentProps) {
   }
 
   const getFilename = (path: string) => path.split(/[/\\]/).pop() || path
-
-  const tabTitle = (tab: Tab) => {
-    if (tab.type === "session") {
-      const directory = tabs.info[tabKey(tab)]?.directory
-      return directory ? getFilename(directory) : "Sessão"
-    }
-    return tab.directory ? getFilename(tab.directory) : "Nova sessão"
-  }
-
-  const loadSessionInfo = (tab: Tab) => {
-    if (tab.type !== "session") return
-    const key = tabKey(tab)
-    const [data] = createResource(
-      () => {
-        if (tabs.info[key]?.directory) return undefined
-        return global.servers.list().find((item) => ServerConnection.key(item) === tab.server)
-      },
-      (conn) =>
-        global
-          .ensureServerCtx(conn)
-          .sdk.client.session.get({ sessionID: tab.sessionId })
-          .then((x) => x.data)
-          .catch(() => undefined),
-    )
-    createEffect(() => {
-      const session = data()
-      if (session) tabs.rememberSessionInfo(tab, session)
-    })
-  }
 
   const handleNewChat = () => {
     try {
@@ -154,73 +124,6 @@ export default function NewLayout(props: ParentProps) {
 
             <div class="h-px bg-border-weaker-base/20 mb-4 shrink-0" />
 
-            {/* Active Session Tabs (Sessões Abertas) */}
-            <Show when={tabs.store.length > 0}>
-              <div class="flex flex-col gap-1 mb-4 shrink-0 pr-1">
-                <div class="flex items-center justify-between px-2 py-1 select-none">
-                  <span class="text-[11px] uppercase tracking-wider text-text-muted font-bold">
-                    Sessões Abertas
-                  </span>
-                  <span class="text-[10px] bg-background-stronger px-1.5 py-0.5 rounded text-text-base">
-                    {tabs.store.length}
-                  </span>
-                </div>
-                <div class="flex flex-col gap-0.5 max-h-[160px] overflow-y-auto no-scrollbar">
-                  <For each={tabs.store}>
-                    {(tab, index) => {
-                      loadSessionInfo(tab)
-
-                      const active = () => {
-                        const r = layout.route()
-                        if (tab.type === "draft") {
-                          return r.type === "draft" && r.draftID === tab.draftID
-                        }
-                        if (tab.type === "session") {
-                          return r.type === "session" && r.sessionId === tab.sessionId
-                        }
-                        return false
-                      }
-                      
-                      return (
-                        <div
-                          class="group relative flex items-center justify-between rounded-md pl-2 pr-1.5 py-1.5 cursor-pointer text-[13px] font-medium transition-colors select-none border-l-2"
-                          classList={{
-                            "bg-background-stronger text-text-strong border-[#12C79A]": active(),
-                            "text-text-base border-transparent hover:bg-background-stronger hover:text-text-strong":
-                              !active(),
-                          }}
-                          onClick={() => {
-                            tabs.select(tab)
-                          }}
-                        >
-                          <div class="flex items-center gap-2 min-w-0 flex-1">
-                            <Show
-                              when={tab.type === "session"}
-                              fallback={<IconV2 name="edit" class="size-4 shrink-0 text-text-muted" />}
-                            >
-                              <IconV2 name="bubble-5" class="size-4 shrink-0 text-text-muted" />
-                            </Show>
-                            <span class="truncate pr-4">{tabTitle(tab)}</span>
-                          </div>
-                          <button
-                            type="button"
-                            class="opacity-0 group-hover:opacity-100 hover:bg-background-base p-0.5 rounded transition-opacity"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              tabs.closeTab(index())
-                            }}
-                          >
-                            <IconV2 name="xmark-small" class="size-3.5" />
-                          </button>
-                        </div>
-                      )
-                    }}
-                  </For>
-                </div>
-                <div class="h-px bg-border-weaker-base/20 my-2" />
-              </div>
-            </Show>
-
             {/* Projetos Label */}
             <div class="text-[11px] uppercase tracking-wider text-text-muted font-bold px-2 py-1 select-none mb-1 shrink-0">
               Projetos
@@ -254,19 +157,32 @@ export default function NewLayout(props: ParentProps) {
                     }
                   })
 
+                  const collapsed = () => !!collapsedProjects[projectItem.worktree]
+
                   return (
                     <div class="flex flex-col min-w-0">
                       {/* Project Header Item */}
-                      <div class="group/project flex items-center justify-between gap-2 py-1 pl-2 pr-0 select-none">
+                      <button
+                        type="button"
+                        class="group/project flex items-center justify-between gap-2 py-1 pl-2 pr-0 select-none cursor-pointer text-left"
+                        onClick={() => setCollapsedProjects(projectItem.worktree, (v) => !v)}
+                        aria-expanded={!collapsed()}
+                      >
                         <div class="flex items-center gap-2 min-w-0 flex-1">
                           <IconV2 name="database" class="size-4 shrink-0 text-[#12C79A]" />
                           <span class="text-[13.5px] font-semibold text-text-strong truncate">
                             {projectName()}
                           </span>
                         </div>
-                      </div>
+                        <IconV2
+                          name="chevron-down"
+                          class="size-3.5 shrink-0 text-text-muted transition-transform"
+                          style={{ transform: collapsed() ? "rotate(-90deg)" : "rotate(0deg)" }}
+                        />
+                      </button>
 
                       {/* Chats List or "Nenhum chat" */}
+                      <Show when={!collapsed()}>
                       <div class="pl-2 flex flex-col gap-1 border-l border-border-weaker-base/20 ml-3.5 mt-1 select-none">
                         <Show
                           when={projectSessions().length > 0}
@@ -316,6 +232,7 @@ export default function NewLayout(props: ParentProps) {
                           </For>
                         </Show>
                       </div>
+                      </Show>
                     </div>
                   )
                 }}
