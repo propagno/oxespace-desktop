@@ -171,6 +171,10 @@ export const dict = {
   "provider.custom.models.id.placeholder": "id-do-modelo",
   "provider.custom.models.name.label": "Nome",
   "provider.custom.models.name.placeholder": "Nome de Exibição",
+  "provider.custom.models.contextLimit.label": "Janela de contexto",
+  "provider.custom.models.contextLimit.placeholder": "200000",
+  "provider.custom.models.contextLimit.description":
+    "Tamanho da janela de contexto em tokens (opcional). Necessário para o indicador de uso de contexto funcionar na sessão.",
   "provider.custom.models.remove": "Remover modelo",
   "provider.custom.models.add": "Adicionar modelo",
   "provider.custom.headers.label": "Cabeçalhos (opcional)",
@@ -187,6 +191,7 @@ export const dict = {
   "provider.custom.error.baseURL.required": "URL Base é obrigatória",
   "provider.custom.error.baseURL.format": "Deve começar com http:// ou https://",
   "provider.custom.error.timeout.format": "Deve ser um número inteiro positivo de milissegundos",
+  "provider.custom.error.contextLimit.format": "Deve ser um número inteiro positivo de tokens",
   "provider.custom.error.required": "Obrigatório",
   "provider.custom.error.duplicate": "Duplicado",
   "provider.disconnect.toast.disconnected.title": "{{provider}} desconectado",

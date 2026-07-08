@@ -129,7 +129,7 @@ export function CustomProviderForm(props: { editingProviderID?: string } = {}) {
     setForm("protocol", protocol)
   }
 
-  const setModel = (index: number, key: "id" | "name", value: string) => {
+  const setModel = (index: number, key: "id" | "name" | "contextLimit", value: string) => {
     batch(() => {
       setForm("models", index, key, value)
       setForm("models", index, "err", key, undefined)
@@ -287,7 +287,10 @@ export function CustomProviderForm(props: { editingProviderID?: string } = {}) {
         </div>
 
         <div class="flex flex-col gap-3">
-          <label class="text-12-medium text-text-weak">{language.t("provider.custom.models.label")}</label>
+          <div class="flex flex-col gap-1">
+            <label class="text-12-medium text-text-weak">{language.t("provider.custom.models.label")}</label>
+            <p class="text-12-regular text-text-weak">{language.t("provider.custom.models.contextLimit.description")}</p>
+          </div>
           <For each={form.models}>
             {(m, i) => (
               <div class="flex gap-2 items-start" data-row={m.row}>
@@ -311,6 +314,17 @@ export function CustomProviderForm(props: { editingProviderID?: string } = {}) {
                     onChange={(v) => setModel(i(), "name", v)}
                     validationState={m.err.name ? "invalid" : undefined}
                     error={m.err.name}
+                  />
+                </div>
+                <div class="w-28 shrink-0">
+                  <TextField
+                    label={language.t("provider.custom.models.contextLimit.label")}
+                    hideLabel
+                    placeholder={language.t("provider.custom.models.contextLimit.placeholder")}
+                    value={m.contextLimit}
+                    onChange={(v) => setModel(i(), "contextLimit", v)}
+                    validationState={m.err.contextLimit ? "invalid" : undefined}
+                    error={m.err.contextLimit}
                   />
                 </div>
                 <IconButton

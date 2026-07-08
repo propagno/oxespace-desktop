@@ -13,7 +13,7 @@ describe("validateCustomProvider", () => {
         baseURL: "https://api.example.com ",
         apiKey: " {env: CUSTOM_PROVIDER_KEY} ",
         timeout: "",
-        models: [{ row: "m0", id: " model-a ", name: " Model A ", err: {} }],
+        models: [{ row: "m0", id: " model-a ", name: " Model A ", contextLimit: "", err: {} }],
         headers: [
           { row: "h0", key: " X-Test ", value: " enabled ", err: {} },
           { row: "h1", key: "", value: "", err: {} },
@@ -56,8 +56,8 @@ describe("validateCustomProvider", () => {
         apiKey: "secret",
         timeout: "",
         models: [
-          { row: "m0", id: "model-a", name: "Model A", err: {} },
-          { row: "m1", id: "model-a", name: "Model A 2", err: {} },
+          { row: "m0", id: "model-a", name: "Model A", contextLimit: "", err: {} },
+          { row: "m1", id: "model-a", name: "Model A 2", contextLimit: "", err: {} },
         ],
         headers: [
           { row: "h0", key: "Authorization", value: "one", err: {} },
@@ -75,6 +75,7 @@ describe("validateCustomProvider", () => {
     expect(result.models[1]).toEqual({
       id: "provider.custom.error.duplicate",
       name: undefined,
+      contextLimit: undefined,
     })
     expect(result.headers[1]).toEqual({
       key: "provider.custom.error.duplicate",
@@ -91,7 +92,7 @@ describe("validateCustomProvider", () => {
         baseURL: "https://llm-proxy.corp.internal",
         apiKey: "secret",
         timeout: "600000",
-        models: [{ row: "m0", id: "gpt-5-5", name: "GPT-5.5 via gateway", err: {} }],
+        models: [{ row: "m0", id: "gpt-5-5", name: "GPT-5.5 via gateway", contextLimit: "", err: {} }],
         headers: [{ row: "h0", key: "", value: "", err: {} }],
         err: {},
       },
@@ -113,7 +114,7 @@ describe("validateCustomProvider", () => {
         baseURL: "https://llm-proxy.corp.internal/",
         apiKey: "secret",
         timeout: "",
-        models: [{ row: "m0", id: "gpt-5-5", name: "GPT-5.5 via gateway", err: {} }],
+        models: [{ row: "m0", id: "gpt-5-5", name: "GPT-5.5 via gateway", contextLimit: "", err: {} }],
         headers: [{ row: "h0", key: "", value: "", err: {} }],
         err: {},
       },
@@ -134,7 +135,7 @@ describe("validateCustomProvider", () => {
         baseURL: "https://llm-proxy.corp.internal/v1",
         apiKey: "secret",
         timeout: "",
-        models: [{ row: "m0", id: "gpt-5-5", name: "GPT-5.5 via gateway", err: {} }],
+        models: [{ row: "m0", id: "gpt-5-5", name: "GPT-5.5 via gateway", contextLimit: "", err: {} }],
         headers: [{ row: "h0", key: "", value: "", err: {} }],
         err: {},
       },
@@ -155,7 +156,7 @@ describe("validateCustomProvider", () => {
         baseURL: "https://llm-proxy.corp.internal",
         apiKey: "secret",
         timeout: "not-a-number",
-        models: [{ row: "m0", id: "gpt-5-5", name: "GPT-5.5 via gateway", err: {} }],
+        models: [{ row: "m0", id: "gpt-5-5", name: "GPT-5.5 via gateway", contextLimit: "", err: {} }],
         headers: [{ row: "h0", key: "", value: "", err: {} }],
         err: {},
       },
@@ -166,5 +167,50 @@ describe("validateCustomProvider", () => {
 
     expect(result.result).toBeUndefined()
     expect(result.err.timeout).toBe("provider.custom.error.timeout.format")
+  })
+
+  test("sets the model context limit when provided", () => {
+    const result = validateCustomProvider({
+      form: {
+        providerID: "corp-gateway",
+        name: "Corp Gateway",
+        protocol: "openai",
+        baseURL: "https://api.example.com",
+        apiKey: "secret",
+        timeout: "",
+        models: [{ row: "m0", id: "gpt-5-5", name: "GPT-5.5", contextLimit: "200000", err: {} }],
+        headers: [{ row: "h0", key: "", value: "", err: {} }],
+        err: {},
+      },
+      t,
+      disabledProviders: [],
+      existingProviderIDs: new Set(),
+    })
+
+    expect(result.result?.config.models).toEqual({
+      "gpt-5-5": { name: "GPT-5.5", limit: { context: 200000, output: 200000 } },
+    })
+  })
+
+  test("rejects a non-numeric context limit", () => {
+    const result = validateCustomProvider({
+      form: {
+        providerID: "corp-gateway",
+        name: "Corp Gateway",
+        protocol: "openai",
+        baseURL: "https://api.example.com",
+        apiKey: "secret",
+        timeout: "",
+        models: [{ row: "m0", id: "gpt-5-5", name: "GPT-5.5", contextLimit: "not-a-number", err: {} }],
+        headers: [{ row: "h0", key: "", value: "", err: {} }],
+        err: {},
+      },
+      t,
+      disabledProviders: [],
+      existingProviderIDs: new Set(),
+    })
+
+    expect(result.result).toBeUndefined()
+    expect(result.models[0].contextLimit).toBe("provider.custom.error.contextLimit.format")
   })
 })

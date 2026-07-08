@@ -188,6 +188,10 @@ export const dict = {
   "provider.custom.models.id.placeholder": "model-id",
   "provider.custom.models.name.label": "Name",
   "provider.custom.models.name.placeholder": "Display Name",
+  "provider.custom.models.contextLimit.label": "Context window",
+  "provider.custom.models.contextLimit.placeholder": "200000",
+  "provider.custom.models.contextLimit.description":
+    "Context window size in tokens (optional). Needed for the context-usage indicator in a session to work.",
   "provider.custom.models.remove": "Remove model",
   "provider.custom.models.add": "Add model",
   "provider.custom.headers.label": "Headers (optional)",
@@ -204,6 +208,7 @@ export const dict = {
   "provider.custom.error.baseURL.required": "Base URL is required",
   "provider.custom.error.baseURL.format": "Must start with http:// or https://",
   "provider.custom.error.timeout.format": "Must be a positive whole number of milliseconds",
+  "provider.custom.error.contextLimit.format": "Must be a positive whole number of tokens",
   "provider.custom.error.required": "Required",
   "provider.custom.error.duplicate": "Duplicate",
 

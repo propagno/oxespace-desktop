@@ -9,6 +9,7 @@ type Translator = (key: string, vars?: Record<string, string | number | boolean>
 export type ModelErr = {
   id?: string
   name?: string
+  contextLimit?: string
 }
 
 export type HeaderErr = {
@@ -20,6 +21,7 @@ export type ModelRow = {
   row: string
   id: string
   name: string
+  contextLimit: string
   err: ModelErr
 }
 
@@ -102,10 +104,25 @@ export function validateCustomProvider(input: ValidateArgs) {
             return undefined
           })()
     const nameError = !m.name.trim() ? input.t("provider.custom.error.required") : undefined
-    return { id: idError, name: nameError }
+    const contextLimitRaw = m.contextLimit.trim()
+    const contextLimitValue = contextLimitRaw ? Number(contextLimitRaw) : undefined
+    const contextLimitError =
+      contextLimitRaw && (!Number.isInteger(contextLimitValue) || (contextLimitValue ?? 0) <= 0)
+        ? input.t("provider.custom.error.contextLimit.format")
+        : undefined
+    return { id: idError, name: nameError, contextLimit: contextLimitError }
   })
-  const modelsValid = models.every((m) => !m.id && !m.name)
-  const modelConfig = Object.fromEntries(input.form.models.map((m) => [m.id.trim(), { name: m.name.trim() }]))
+  const modelsValid = models.every((m) => !m.id && !m.name && !m.contextLimit)
+  const modelConfig = Object.fromEntries(
+    input.form.models.map((m) => {
+      const contextLimitRaw = m.contextLimit.trim()
+      const context = contextLimitRaw ? Number(contextLimitRaw) : undefined
+      return [
+        m.id.trim(),
+        { name: m.name.trim(), ...(context ? { limit: { context, output: context } } : {}) },
+      ]
+    }),
+  )
 
   const seenHeaders = new Set<string>()
   const headers = input.form.headers.map((h) => {
@@ -176,10 +193,11 @@ let row = 0
 
 const nextRow = () => `row-${row++}`
 
-export const modelRow = (init?: { id?: string; name?: string }): ModelRow => ({
+export const modelRow = (init?: { id?: string; name?: string; contextLimit?: string }): ModelRow => ({
   row: nextRow(),
   id: init?.id ?? "",
   name: init?.name ?? "",
+  contextLimit: init?.contextLimit ?? "",
   err: {},
 })
 export const headerRow = (init?: { key?: string; value?: string }): HeaderRow => ({
@@ -194,11 +212,13 @@ export type ExistingCustomProviderConfig = {
   npm?: string
   env?: readonly string[]
   options?: { baseURL?: string; headerTimeout?: number | false; headers?: Record<string, string> }
-  models?: Record<string, { name?: string }>
+  models?: Record<string, { name?: string; limit?: { context?: number } }>
 }
 
 export function formStateFromExistingProvider(providerID: string, config: ExistingCustomProviderConfig): FormState {
-  const models = Object.entries(config.models ?? {}).map(([id, m]) => modelRow({ id, name: m.name ?? id }))
+  const models = Object.entries(config.models ?? {}).map(([id, m]) =>
+    modelRow({ id, name: m.name ?? id, contextLimit: m.limit?.context ? String(m.limit.context) : "" }),
+  )
   const headers = Object.entries(config.options?.headers ?? {}).map(([key, value]) => headerRow({ key, value }))
   return {
     providerID,
